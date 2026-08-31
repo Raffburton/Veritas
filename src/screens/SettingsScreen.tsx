@@ -382,13 +382,40 @@ export function SettingsScreen() {
               ) : null}
 
               {panel === 'technologies' ? (
-                <View style={styles.technologyList}>
-                  {['Expo SDK 54', 'React Native', 'TypeScript', 'React Navigation', 'AsyncStorage'].map((technology) => (
-                    <View key={technology} style={[styles.technology, { borderBottomColor: colors.border }]}>
-                      <Ionicons name="checkmark-circle-outline" size={21} color={colors.primary} />
-                      <Text style={[styles.technologyText, { color: colors.text }]}>{technology}</Text>
+                <View>
+                  <View style={styles.technologyList}>
+                    {['Expo SDK 54', 'React Native', 'TypeScript', 'React Navigation', 'AsyncStorage', 'Expo Notifications'].map((technology) => (
+                      <View key={technology} style={[styles.technology, { borderBottomColor: colors.border }]}> 
+                        <Ionicons name="checkmark-circle-outline" size={21} color={colors.primary} />
+                        <Text style={[styles.technologyText, { color: colors.text }]}>{technology}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View style={[styles.transparencyCard, { backgroundColor: colors.background, borderColor: colors.border }]}> 
+                    <View style={styles.transparencyHeader}>
+                      <Ionicons name="eye-outline" size={23} color={colors.primary} />
+                      <Text style={[styles.transparencyTitle, { color: colors.text }]}>Transparência e fontes</Text>
                     </View>
-                  ))}
+                    <Text style={[styles.transparencyText, { color: colors.mutedText }]}>A liturgia diária é atualizada pela API pública e open source Liturgia Diária, desenvolvida por Dancrf. Quando há internet, o Veritas consulta a API e salva os dados no aparelho para permitir a leitura offline.</Text>
+                    <Pressable
+                      accessibilityRole="link"
+                      onPress={() => void Linking.openURL('https://github.com/Dancrf/liturgia-diaria')}
+                      style={[styles.sourceLink, { borderColor: colors.border }]}
+                    >
+                      <Ionicons name="logo-github" size={19} color={colors.primary} />
+                      <Text style={[styles.sourceLinkText, { color: colors.text }]}>Dancrf/liturgia-diaria</Text>
+                      <Ionicons name="open-outline" size={16} color={colors.mutedText} />
+                    </Pressable>
+                    <Text style={[styles.apiAddress, { color: colors.mutedText }]}>API: liturgia.up.railway.app/v2</Text>
+                  </View>
+
+                  <View style={[styles.missionCard, { borderColor: colors.primary }]}> 
+                    <Ionicons name="heart-circle-outline" size={30} color={colors.primary} />
+                    <Text style={[styles.missionTitle, { color: colors.text }]}>Nossa missão</Text>
+                    <Text style={[styles.missionText, { color: colors.mutedText }]}>O Veritas busca ser uma base de estudos gratuita, acessível e completa para ajudar todos os cristãos que precisam de apoio em sua caminhada de fé, leitura e formação.</Text>
+                    <Text style={[styles.missionClosing, { color: colors.primary }]}>Este app é uma contribuição a serviço de Cristo, nosso Rei, e de sua Igreja.</Text>
+                  </View>
                 </View>
               ) : null}
 
@@ -507,6 +534,17 @@ const styles = StyleSheet.create({
   technologyList: { overflow: 'hidden' },
   technology: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54, borderBottomWidth: StyleSheet.hairlineWidth },
   technologyText: { fontSize: 15, fontWeight: '600' },
+  transparencyCard: { marginTop: 20, padding: 15, borderWidth: 1, borderRadius: 13 },
+  transparencyHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 },
+  transparencyTitle: { fontFamily: 'serif', fontSize: 18, fontWeight: '700' },
+  transparencyText: { fontSize: 13, lineHeight: 20 },
+  sourceLink: { flexDirection: 'row', alignItems: 'center', gap: 9, minHeight: 48, marginTop: 13, paddingHorizontal: 12, borderWidth: 1, borderRadius: 10 },
+  sourceLinkText: { flex: 1, fontSize: 13, fontWeight: '700' },
+  apiAddress: { marginTop: 8, fontSize: 10, textAlign: 'center' },
+  missionCard: { alignItems: 'center', marginTop: 14, padding: 17, borderWidth: 1, borderRadius: 13 },
+  missionTitle: { marginTop: 7, fontFamily: 'serif', fontSize: 19, fontWeight: '700' },
+  missionText: { marginTop: 10, fontSize: 13, lineHeight: 20, textAlign: 'center' },
+  missionClosing: { marginTop: 12, fontFamily: 'serif', fontSize: 14, fontWeight: '700', lineHeight: 21, textAlign: 'center' },
   supportTitle: { marginTop: 9, fontFamily: 'serif', fontSize: 20, fontWeight: '700' },
   pixCard: { width: '100%', marginTop: 16, padding: 14, borderWidth: 1, borderRadius: 12 },
   pixHeader: { flexDirection: 'row', alignItems: 'center', gap: 9 },
