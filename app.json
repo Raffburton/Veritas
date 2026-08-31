@@ -14,7 +14,8 @@
         "backgroundColor": "#071525",
         "foregroundImage": "./Icon.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.raffburton.Veritas"
     },
     "web": {
       "favicon": "./Icon.png"
