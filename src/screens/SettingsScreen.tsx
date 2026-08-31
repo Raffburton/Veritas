@@ -142,7 +142,7 @@ export function SettingsScreen() {
           <SettingsRow
             icon="heart-outline"
             title="Apoie o desenvolvedor"
-            description="Contato e GitHub"
+            description="PIX, contato e GitHub"
             onPress={() => setPanel('support')}
             colors={colors}
             last
@@ -314,7 +314,18 @@ export function SettingsScreen() {
                 <View style={styles.centeredPanel}>
                   <Ionicons name="heart-outline" size={38} color={colors.primary} />
                   <Text style={[styles.supportTitle, { color: colors.text }]}>Ajude o Veritas a crescer</Text>
-                  <Text style={[styles.paragraph, { color: colors.mutedText }]}>Para contribuir com o desenvolvimento ou conversar sobre doações, entre em contato com Rafael Burton.</Text>
+                  <Text style={[styles.paragraph, { color: colors.mutedText }]}>Sua contribuição ajuda a manter e aprimorar o Veritas.</Text>
+                  <View style={[styles.pixCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <View style={styles.pixHeader}>
+                      <Ionicons name="qr-code-outline" size={22} color={colors.primary} />
+                      <Text style={[styles.pixTitle, { color: colors.text }]}>Doação via PIX</Text>
+                    </View>
+                    <Text style={[styles.pixDetail, { color: colors.mutedText }]}>Banco Inter · Rafael Matos</Text>
+                    <Text selectable style={[styles.pixKey, { color: colors.text, borderColor: colors.border }]}>
+                      e8d32269-fa6a-4d2f-8817-befb4accd685
+                    </Text>
+                    <Text style={[styles.pixHint, { color: colors.mutedText }]}>Mantenha a chave pressionada para copiá-la.</Text>
+                  </View>
                   <Pressable accessibilityRole="link" onPress={() => void Linking.openURL('mailto:raffburton.dev@gmail.com')}
                     style={[styles.contactButton, { borderColor: colors.border }]}>
                     <Ionicons name="mail-outline" size={21} color={colors.primary} />
@@ -396,6 +407,12 @@ const styles = StyleSheet.create({
   technology: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54, borderBottomWidth: StyleSheet.hairlineWidth },
   technologyText: { fontSize: 15, fontWeight: '600' },
   supportTitle: { marginTop: 9, fontFamily: 'serif', fontSize: 20, fontWeight: '700' },
+  pixCard: { width: '100%', marginTop: 16, padding: 14, borderWidth: 1, borderRadius: 12 },
+  pixHeader: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  pixTitle: { fontSize: 15, fontWeight: '800' },
+  pixDetail: { marginTop: 9, fontSize: 13, fontWeight: '600' },
+  pixKey: { marginTop: 11, paddingVertical: 11, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8, fontSize: 12, lineHeight: 18 },
+  pixHint: { marginTop: 7, fontSize: 10 },
   contactButton: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 11, minHeight: 58, marginTop: 10, paddingHorizontal: 13, borderWidth: 1, borderRadius: 11 },
   contactValue: { flex: 1, fontSize: 13, fontWeight: '600' },
 });
