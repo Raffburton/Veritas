@@ -18,6 +18,9 @@
     },
     "web": {
       "favicon": "./Icon.png"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

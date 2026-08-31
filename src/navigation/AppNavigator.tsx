@@ -1,28 +1,81 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import { HomeScreen } from '../screens/HomeScreen';
+import { useTheme } from '../context/ThemeContext';
+import { BibleScreen } from '../screens/BibleScreen';
+import { NotesScreen } from '../screens/NotesScreen';
+import { PrayersScreen } from '../screens/PrayersScreen';
 import { ReaderScreen } from '../screens/ReaderScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 
-export type RootStackParamList = {
-  Home: undefined;
-  Reader: undefined;
+export type RootTabParamList = {
+  Liturgy: undefined;
+  Bible: undefined;
+  Notes: undefined;
+  Prayers: undefined;
+  Settings: undefined;
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<RootTabParamList>();
+
+const icons: Record<
+  keyof RootTabParamList,
+  { active: keyof typeof Ionicons.glyphMap; inactive: keyof typeof Ionicons.glyphMap }
+> = {
+  Liturgy: { active: 'book', inactive: 'book-outline' },
+  Bible: { active: 'library', inactive: 'library-outline' },
+  Notes: { active: 'document-text', inactive: 'document-text-outline' },
+  Prayers: { active: 'sparkles', inactive: 'sparkles-outline' },
+  Settings: { active: 'settings', inactive: 'settings-outline' },
+};
 
 export function AppNavigator() {
+  const { colors } = useTheme();
+
   return (
-    <Stack.Navigator initialRouteName="Reader">
-      <Stack.Screen
-        name="Reader"
-        component={ReaderScreen}
-        options={{ title: 'Leituras' }}
+    <Tab.Navigator
+      initialRouteName="Liturgy"
+      screenOptions={({ route }) => ({
+        headerTitle: 'veritas',
+        headerTitleAlign: 'center',
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          color: colors.primary,
+          fontFamily: 'serif',
+          fontSize: 27,
+          fontWeight: '700',
+        },
+        headerShadowVisible: false,
+        sceneStyle: { backgroundColor: colors.background },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.mutedText,
+        tabBarStyle: {
+          height: 66,
+          paddingTop: 7,
+          paddingBottom: 8,
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarIcon: ({ color, focused, size }) => (
+          <Ionicons
+            name={focused ? icons[route.name].active : icons[route.name].inactive}
+            color={color}
+            size={size}
+          />
+        ),
+      })}
+    >
+      <Tab.Screen name="Liturgy" component={ReaderScreen} options={{ title: 'Liturgia' }} />
+      <Tab.Screen name="Bible" component={BibleScreen} options={{ title: 'Bíblia' }} />
+      <Tab.Screen name="Notes" component={NotesScreen} options={{ title: 'Notas' }} />
+      <Tab.Screen name="Prayers" component={PrayersScreen} options={{ title: 'Orações' }} />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ title: 'Configurações' }}
       />
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ title: 'Veritas' }}
-      />
-    </Stack.Navigator>
+    </Tab.Navigator>
   );
 }

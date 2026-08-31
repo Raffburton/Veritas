@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 export const THEME_OPTIONS = [
   'light-yellow',
@@ -49,10 +50,40 @@ export const MAX_FONT_SIZE = 32;
 export const FONT_SIZE_STEP = 2;
 
 const ThemeContext = createContext(undefined);
+const THEME_PREFERENCES_KEY = '@veritas:theme-preferences';
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(DEFAULT_THEME);
   const [fontSize, setFontSizeState] = useState(DEFAULT_FONT_SIZE);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadPreferences() {
+      try {
+        const stored = await AsyncStorage.getItem(THEME_PREFERENCES_KEY);
+        if (stored) {
+          const preferences = JSON.parse(stored);
+          if (THEME_OPTIONS.includes(preferences.theme)) setThemeState(preferences.theme);
+          if (Number.isFinite(preferences.fontSize)) {
+            setFontSizeState(Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, preferences.fontSize)));
+          }
+        }
+      } catch {
+        // Mantém os valores padrão se as preferências locais estiverem corrompidas.
+      } finally {
+        setPreferencesLoaded(true);
+      }
+    }
+    void loadPreferences();
+  }, []);
+
+  useEffect(() => {
+    if (!preferencesLoaded) return;
+    void AsyncStorage.setItem(
+      THEME_PREFERENCES_KEY,
+      JSON.stringify({ theme, fontSize }),
+    ).catch(() => undefined);
+  }, [fontSize, preferencesLoaded, theme]);
 
   const setTheme = useCallback((nextTheme) => {
     if (!THEME_OPTIONS.includes(nextTheme)) {

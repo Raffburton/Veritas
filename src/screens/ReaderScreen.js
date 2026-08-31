@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { ContentActions } from '../components/ContentActions';
 import { useTheme } from '../context/ThemeContext';
 import { getLiturgyWeek } from '../services/liturgyService';
 
@@ -48,6 +49,31 @@ export function ReaderScreen() {
       </View>
     );
   }
+
+  const liturgyReference = {
+    source: 'liturgy',
+    id: `liturgy:${selectedLiturgy.date}`,
+    title: `Liturgia de ${selectedLiturgy.weekday}`,
+    location: selectedLiturgy.date.split('-').reverse().join('/'),
+    excerpt: `${selectedLiturgy.firstReading.reference}: ${selectedLiturgy.firstReading.summary}`,
+    date: selectedLiturgy.date,
+    section: 'Liturgia do dia',
+  };
+  const shareText = [
+    liturgyReference.title,
+    liturgyReference.location,
+    '',
+    `Primeira leitura — ${selectedLiturgy.firstReading.reference}`,
+    selectedLiturgy.firstReading.summary,
+    '',
+    `Salmo — ${selectedLiturgy.psalm.reference}`,
+    selectedLiturgy.psalm.response,
+    '',
+    `Evangelho — ${selectedLiturgy.gospel.reference}`,
+    selectedLiturgy.gospel.summary,
+    '',
+    'Compartilhado pelo Veritas',
+  ].join('\n');
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -113,6 +139,8 @@ export function ReaderScreen() {
             {selectedLiturgy.liturgicalSeason} · cor {selectedLiturgy.liturgicalColor}
           </Text>
         </View>
+
+        <ContentActions reference={liturgyReference} shareText={shareText} />
 
         <ReadingSection
           heading="Primeira leitura"
