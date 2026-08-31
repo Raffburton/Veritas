@@ -7,9 +7,11 @@ export type ContentReference = {
   location: string;
   excerpt: string;
   book?: string;
+  bookIndex?: number;
   chapter?: number;
   verseStart?: number;
   verseEnd?: number;
+  verseNumbers?: number[];
   date?: string;
   section?: string;
 };

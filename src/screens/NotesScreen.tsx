@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { Alert, FlatList, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { useLibrary } from '../context/LibraryContext';
 import { useTheme } from '../context/ThemeContext';
+import type { RootTabParamList } from '../navigation/AppNavigator';
 import type { ContentReference, LinkedNote, SavedReading } from '../types/library';
 
 type Section = 'notes' | 'saved';
@@ -26,10 +29,25 @@ function shareReference(reference: ContentReference, note?: string) {
 }
 
 export function NotesScreen() {
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { colors, fontSize } = useTheme();
   const { notes, savedReadings, ready, deleteNote, removeSavedReading } = useLibrary();
   const [section, setSection] = useState<Section>('notes');
   const data = section === 'notes' ? notes : savedReadings;
+
+  function openReference(reference: ContentReference) {
+    if (reference.source === 'bible' && reference.bookIndex !== undefined) {
+      navigation.navigate('Bible', {
+        bookIndex: reference.bookIndex,
+        chapter: reference.chapter,
+        verses: reference.verseNumbers,
+      });
+      return;
+    }
+    if (reference.source === 'liturgy' && reference.date) {
+      navigation.navigate('Liturgy', { date: reference.date });
+    }
+  }
 
   function confirmDelete(item: LinkedNote | SavedReading) {
     Alert.alert(
@@ -118,10 +136,10 @@ export function NotesScreen() {
                 </View>
               ) : null}
               <View style={styles.cardActions}>
-                <View style={styles.linkedLabel}>
+                <Pressable accessibilityRole="link" onPress={() => openReference(reference)} style={styles.linkedLabel}>
                   <Ionicons name="link-outline" size={16} color={colors.mutedText} />
                   <Text style={[styles.linkedText, { color: colors.mutedText }]}>Vinculado ao texto</Text>
-                </View>
+                </Pressable>
                 <Pressable accessibilityLabel="Compartilhar" hitSlop={8}
                   onPress={() => void shareReference(reference, note?.body)}>
                   <Ionicons name="share-social-outline" size={20} color={colors.primary} />

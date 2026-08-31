@@ -9,8 +9,8 @@ import { ReaderScreen } from '../screens/ReaderScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 
 export type RootTabParamList = {
-  Liturgy: undefined;
-  Bible: undefined;
+  Liturgy: { date?: string } | undefined;
+  Bible: { bookIndex?: number; chapter?: number; verses?: number[] } | undefined;
   Notes: undefined;
   Prayers: undefined;
   Settings: undefined;

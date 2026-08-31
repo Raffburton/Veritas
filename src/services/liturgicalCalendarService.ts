@@ -4,6 +4,7 @@ export type CalendarReading = {
   reference: string;
   title?: string;
   response?: string;
+  text?: string;
 };
 
 export type LiturgicalCalendarDay = {
@@ -16,6 +17,16 @@ export type LiturgicalCalendarDay = {
     secondReading: CalendarReading[];
     gospel: CalendarReading[];
     extras: CalendarReading[];
+  };
+  prayers?: {
+    collect?: string;
+    offerings?: string;
+    communion?: string;
+    extras?: Array<{ title?: string; text: string }>;
+  };
+  antiphons?: {
+    entrance?: string;
+    communion?: string;
   };
 };
 

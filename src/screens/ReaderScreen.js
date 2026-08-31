@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
+import { useDailyLiturgy } from '../context/DailyLiturgyContext';
 import { useTheme } from '../context/ThemeContext';
 import {
   getLiturgicalCalendarMetadata,
-  getLiturgicalWeek,
+  getLiturgicalDay,
   toLocalIsoDate,
 } from '../services/liturgicalCalendarService';
 
@@ -16,6 +17,19 @@ function dateFromIso(isoDate) {
   return new Date(year, month - 1, day);
 }
 
+function readingShareBlock(label, readings) {
+  if (!readings.length) return [];
+  return [
+    label.toUpperCase(),
+    ...readings.flatMap((reading) => [
+      [reading.reference, reading.title].filter(Boolean).join(' — '),
+      reading.response,
+      reading.text,
+      '',
+    ].filter((line) => line !== undefined && line !== null)),
+  ];
+}
+
 function ReadingCard({ heading, readings, colors, fontSize }) {
   if (!readings.length) return null;
   return (
@@ -23,22 +37,39 @@ function ReadingCard({ heading, readings, colors, fontSize }) {
       <Text style={[styles.sectionHeading, { color: colors.primary, fontSize: Math.max(fontSize - 2, 12) }]}>{heading}</Text>
       {readings.map((reading, index) => (
         <View key={`${reading.reference}-${index}`} style={index > 0 ? styles.additionalReading : undefined}>
-          <Text style={[styles.reference, { color: colors.text, fontSize: fontSize + 2 }]}>{reading.reference}</Text>
+          {reading.reference ? <Text style={[styles.reference, { color: colors.text, fontSize: fontSize + 2 }]}>{reading.reference}</Text> : null}
           {reading.title ? <Text style={[styles.readingTitle, { color: colors.mutedText, fontSize }]}>{reading.title}</Text> : null}
           {reading.response ? <Text style={[styles.response, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.5) }]}>{reading.response}</Text> : null}
+          {reading.text ? <Text style={[styles.readingText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.62) }]}>{reading.text}</Text> : null}
         </View>
       ))}
     </View>
   );
 }
 
-export function ReaderScreen() {
+export function ReaderScreen({ route }) {
   const { colors, theme, fontSize, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
-  const week = useMemo(() => getLiturgicalWeek(new Date()), []);
+  const { getSyncedDay, syncing, lastUpdated } = useDailyLiturgy();
+  const requestedDate = route?.params?.date;
+  const weekDates = useMemo(() => {
+    const now = requestedDate ? dateFromIso(requestedDate) : new Date();
+    const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(sunday);
+      date.setDate(sunday.getDate() + index);
+      return toLocalIsoDate(date);
+    });
+  }, [requestedDate]);
+  const week = weekDates
+    .map((date) => getSyncedDay(date) ?? getLiturgicalDay(date))
+    .filter(Boolean);
   const today = toLocalIsoDate(new Date());
   const [selectedDate, setSelectedDate] = useState(
-    week.some((day) => day.date === today) ? today : (week[0]?.date ?? ''),
+    requestedDate ?? today,
   );
+  useEffect(() => {
+    if (requestedDate) setSelectedDate(requestedDate);
+  }, [requestedDate]);
   const selectedLiturgy = week.find((day) => day.date === selectedDate);
   const metadata = getLiturgicalCalendarMetadata();
 
@@ -71,15 +102,96 @@ export function ReaderScreen() {
     liturgyReference.location,
     `Cor litúrgica: ${selectedLiturgy.color}`,
     '',
-    ...allReadings.map((reading) => `${reading.reference}${reading.response ? ` — ${reading.response}` : ''}`),
+    ...(selectedLiturgy.antiphons?.entrance
+      ? ['ANTÍFONA DE ENTRADA', selectedLiturgy.antiphons.entrance, '']
+      : []),
+    ...(selectedLiturgy.prayers?.collect
+      ? ['ORAÇÃO DA COLETA', selectedLiturgy.prayers.collect, '']
+      : []),
+    ...readingShareBlock('Primeira leitura', selectedLiturgy.readings.firstReading),
+    ...readingShareBlock('Salmo responsorial', selectedLiturgy.readings.psalm),
+    ...readingShareBlock('Segunda leitura', selectedLiturgy.readings.secondReading),
+    ...readingShareBlock('Evangelho', selectedLiturgy.readings.gospel),
+    ...readingShareBlock('Leituras adicionais', selectedLiturgy.readings.extras),
+    ...(selectedLiturgy.prayers?.offerings
+      ? ['ORAÇÃO SOBRE AS OFERENDAS', selectedLiturgy.prayers.offerings, '']
+      : []),
+    ...(selectedLiturgy.antiphons?.communion
+      ? ['ANTÍFONA DA COMUNHÃO', selectedLiturgy.antiphons.communion, '']
+      : []),
+    ...(selectedLiturgy.prayers?.communion
+      ? ['ORAÇÃO DEPOIS DA COMUNHÃO', selectedLiturgy.prayers.communion, '']
+      : []),
+    ...(selectedLiturgy.prayers?.extras ?? []).flatMap((prayer) => [
+      prayer.title?.toUpperCase() ?? 'ORAÇÃO',
+      prayer.text,
+      '',
+    ]),
     '',
     'Compartilhado pelo Veritas',
-  ].join('\n');
+  ].filter((line) => line !== undefined && line !== null).join('\n');
+  const prayerShareText = [
+    selectedLiturgy.antiphons?.entrance
+      ? `ANTÍFONA DE ENTRADA\n${selectedLiturgy.antiphons.entrance}`
+      : null,
+    selectedLiturgy.prayers?.collect
+      ? `ORAÇÃO DA COLETA\n${selectedLiturgy.prayers.collect}`
+      : null,
+    selectedLiturgy.prayers?.offerings
+      ? `ORAÇÃO SOBRE AS OFERENDAS\n${selectedLiturgy.prayers.offerings}`
+      : null,
+    selectedLiturgy.antiphons?.communion
+      ? `ANTÍFONA DA COMUNHÃO\n${selectedLiturgy.antiphons.communion}`
+      : null,
+    selectedLiturgy.prayers?.communion
+      ? `ORAÇÃO DEPOIS DA COMUNHÃO\n${selectedLiturgy.prayers.communion}`
+      : null,
+    ...(selectedLiturgy.prayers?.extras ?? []).map(
+      (prayer) => `${prayer.title?.toUpperCase() ?? 'ORAÇÃO'}\n${prayer.text}`,
+    ),
+  ].filter(Boolean).join('\n\n');
+  const shareOptions = [
+    {
+      id: 'first-reading',
+      label: 'Primeira leitura',
+      text: readingShareBlock('Primeira leitura', selectedLiturgy.readings.firstReading).join('\n').trim(),
+    },
+    {
+      id: 'psalm',
+      label: 'Salmo responsorial',
+      text: readingShareBlock('Salmo responsorial', selectedLiturgy.readings.psalm).join('\n').trim(),
+    },
+    ...(selectedLiturgy.readings.secondReading.length
+      ? [{
+          id: 'second-reading',
+          label: 'Segunda leitura',
+          text: readingShareBlock('Segunda leitura', selectedLiturgy.readings.secondReading).join('\n').trim(),
+        }]
+      : []),
+    {
+      id: 'gospel',
+      label: 'Evangelho',
+      text: readingShareBlock('Evangelho', selectedLiturgy.readings.gospel).join('\n').trim(),
+    },
+    ...(prayerShareText
+      ? [{ id: 'prayers', label: 'Orações e antífonas', text: prayerShareText }]
+      : []),
+  ].filter((option) => option.text);
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
         <Text style={[styles.screenTitle, { color: colors.text, fontSize: fontSize + 10 }]}>Liturgia da semana</Text>
+        <View style={styles.syncStatus}>
+          <View style={[styles.syncDot, { backgroundColor: syncing ? colors.mutedText : colors.primary }]} />
+          <Text style={[styles.syncText, { color: colors.mutedText }]}>
+            {syncing
+              ? 'Atualizando liturgia...'
+              : lastUpdated
+                ? `Atualizada em ${new Date(lastUpdated).toLocaleDateString('pt-BR')}`
+                : 'Calendário disponível offline'}
+          </Text>
+        </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daySelector}>
           {week.map((day) => {
             const date = dateFromIso(day.date);
@@ -106,7 +218,7 @@ export function ReaderScreen() {
           </Text>
         </View>
 
-        <ContentActions reference={liturgyReference} shareText={shareText} />
+        <ContentActions reference={liturgyReference} shareText={shareText} shareOptions={shareOptions} />
         <ReadingCard heading="Primeira leitura" readings={selectedLiturgy.readings.firstReading} colors={colors} fontSize={fontSize} />
         <ReadingCard heading="Salmo responsorial" readings={selectedLiturgy.readings.psalm} colors={colors} fontSize={fontSize} />
         <ReadingCard heading="Segunda leitura" readings={selectedLiturgy.readings.secondReading} colors={colors} fontSize={fontSize} />
@@ -146,8 +258,11 @@ const styles = StyleSheet.create({
   sectionHeading: { marginBottom: 9, fontWeight: '800', textTransform: 'uppercase' },
   reference: { marginBottom: 5, fontWeight: '700' }, readingTitle: { lineHeight: 22 },
   response: { marginTop: 9, fontFamily: 'serif', fontStyle: 'italic' },
+  readingText: { marginTop: 13, fontFamily: 'serif' },
   additionalReading: { marginTop: 14, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth },
   sourceNotice: { marginTop: 4, fontSize: 10, lineHeight: 15, textAlign: 'center' },
+  syncStatus: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -9, marginBottom: 15 },
+  syncDot: { width: 7, height: 7, borderRadius: 4 }, syncText: { fontSize: 10, fontWeight: '700' },
   floatingControls: { position: 'absolute', right: 18, bottom: 18, flexDirection: 'row', alignItems: 'center',
     padding: 6, borderWidth: 1, borderRadius: 28, elevation: 6, shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.22, shadowRadius: 6 },
