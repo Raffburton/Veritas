@@ -27,14 +27,12 @@ export function BibleScreen({ route, navigation }: Props) {
   const [bookIndex, setBookIndex] = useState<number | null>(route.params?.bookIndex ?? null);
   const [chapterNumber, setChapterNumber] = useState(route.params?.chapter ?? 1);
   const [selectedVerses, setSelectedVerses] = useState<number[]>(route.params?.verses ?? []);
-  const [scope, setScope] = useState<'chapter' | 'verses'>(route.params?.verses?.length ? 'verses' : 'chapter');
 
   useEffect(() => {
     if (route.params?.bookIndex === undefined) return;
     setBookIndex(route.params.bookIndex);
     setChapterNumber(route.params.chapter ?? 1);
     setSelectedVerses(route.params.verses ?? []);
-    setScope(route.params.verses?.length ? 'verses' : 'chapter');
   }, [route.params]);
 
   useEffect(
@@ -43,7 +41,6 @@ export function BibleScreen({ route, navigation }: Props) {
         setBookIndex(null);
         setChapterNumber(1);
         setSelectedVerses([]);
-        setScope('chapter');
       }),
     [navigation],
   );
@@ -54,7 +51,6 @@ export function BibleScreen({ route, navigation }: Props) {
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
         setBookIndex(null);
         setSelectedVerses([]);
-        setScope('chapter');
         return true;
       });
       return () => subscription.remove();
@@ -78,40 +74,37 @@ export function BibleScreen({ route, navigation }: Props) {
     setBookIndex(index);
     setChapterNumber(1);
     setSelectedVerses([]);
-    setScope('chapter');
   }
 
   function chooseChapter(number: number) {
     setChapterNumber(number);
     setSelectedVerses([]);
-    setScope('chapter');
   }
 
   function toggleVerse(number: number) {
-    setScope('verses');
     setSelectedVerses((current) =>
       current.includes(number) ? current.filter((verse) => verse !== number) : [...current, number].sort((a, b) => a - b),
     );
   }
 
   if (book && summary && chapter) {
-    const chosenVerses = scope === 'verses' && selectedVerses.length
+    const chosenVerses = selectedVerses.length
       ? chapter.versiculos.filter((verse) => selectedVerses.includes(verse.numero))
       : chapter.versiculos;
-    const location = scope === 'verses' && selectedVerses.length
+    const location = selectedVerses.length
       ? `${summary.abbreviation} ${chapterNumber},${versesLabel(selectedVerses)}`
       : `${summary.abbreviation} ${chapterNumber}`;
     const fullText = chosenVerses.map((verse) => `${verse.numero} ${verse.texto}`).join('\n');
     const reference: ContentReference = {
       source: 'bible',
-      id: `bible:${bookIndex}:${chapterNumber}:${scope === 'verses' ? selectedVerses.join(',') : 'chapter'}`,
+      id: `bible:${bookIndex}:${chapterNumber}:${selectedVerses.length ? selectedVerses.join(',') : 'chapter'}`,
       title: book.livro,
       location,
       excerpt: fullText.length > 600 ? `${fullText.slice(0, 600)}…` : fullText,
       book: book.livro,
       bookIndex: summary.index,
       chapter: chapterNumber,
-      ...(scope === 'verses' && selectedVerses.length
+      ...(selectedVerses.length
         ? {
             verseStart: selectedVerses[0],
             verseEnd: selectedVerses.at(-1),
@@ -138,7 +131,7 @@ export function BibleScreen({ route, navigation }: Props) {
                   <Text style={[styles.readerTitle, { color: colors.text }]}>{book.livro}</Text>
                   <Text style={[styles.readerSubtitle, { color: colors.mutedText }]}>Capítulo {chapterNumber} de {book.capitulos.length}</Text>
                 </View>
-                {scope === 'verses' && selectedVerses.length ? (
+                {selectedVerses.length ? (
                   <Pressable onPress={() => setSelectedVerses([])} style={[styles.clearButton, { borderColor: colors.border }]}>
                     <Text style={[styles.clearText, { color: colors.primary }]}>Limpar · {selectedVerses.length}</Text>
                   </Pressable>
@@ -158,34 +151,16 @@ export function BibleScreen({ route, navigation }: Props) {
                   );
                 })}
               </ScrollView>
-              <View style={[styles.scopeSelector, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                <Pressable onPress={() => { setScope('chapter'); setSelectedVerses([]); }}
-                  style={[styles.scopeButton, scope === 'chapter' && { backgroundColor: colors.primary }]}>
-                  <Ionicons name="document-text-outline" size={17}
-                    color={scope === 'chapter' ? colors.background : colors.mutedText} />
-                  <Text style={[styles.scopeText, { color: scope === 'chapter' ? colors.background : colors.text }]}>Capítulo inteiro</Text>
-                </Pressable>
-                <Pressable onPress={() => setScope('verses')}
-                  style={[styles.scopeButton, scope === 'verses' && { backgroundColor: colors.primary }]}>
-                  <Ionicons name="text-outline" size={17}
-                    color={scope === 'verses' ? colors.background : colors.mutedText} />
-                  <Text style={[styles.scopeText, { color: scope === 'verses' ? colors.background : colors.text }]}>Versículos</Text>
-                </Pressable>
-              </View>
-              <Text style={[styles.selectionHint, { color: colors.mutedText }]}>
-                {scope === 'chapter'
-                  ? 'As ações abaixo serão aplicadas ao capítulo inteiro.'
-                  : selectedVerses.length
-                    ? `${selectedVerses.length} ${selectedVerses.length === 1 ? 'versículo selecionado' : 'versículos selecionados'}.`
-                    : 'Toque em um ou mais versículos para liberar as ações.'}
+              <Text style={[styles.selectionHint, { color: colors.mutedText }]}> 
+                {selectedVerses.length
+                  ? `${selectedVerses.length} ${selectedVerses.length === 1 ? 'versículo selecionado' : 'versículos selecionados'}.`
+                  : 'Toque em um ou mais versículos para selecioná-los.'}
               </Text>
-              {scope === 'chapter' || selectedVerses.length ? (
-                <ContentActions reference={reference} shareText={shareText} />
-              ) : null}
+              <ContentActions reference={reference} shareText={shareText} />
             </>
           }
           renderItem={({ item: verse }) => {
-            const selected = scope === 'verses' && selectedVerses.includes(verse.numero);
+            const selected = selectedVerses.includes(verse.numero);
             return (
               <Pressable accessibilityRole="button" accessibilityState={{ selected }} onPress={() => toggleVerse(verse.numero)}
                 style={[
@@ -276,9 +251,6 @@ const styles = StyleSheet.create({
   readerSubtitle: { marginTop: 3, fontSize: 11 }, clearButton: { paddingHorizontal: 10, paddingVertical: 7, borderWidth: 1, borderRadius: 8 },
   clearText: { fontSize: 11, fontWeight: '700' }, chapters: { gap: 7, paddingVertical: 15 },
   chapterButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 10 },
-  scopeSelector: { flexDirection: 'row', padding: 4, borderWidth: 1, borderRadius: 11 },
-  scopeButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 40, borderRadius: 8 },
-  scopeText: { fontSize: 12, fontWeight: '700' },
   selectionHint: { marginTop: 8, marginBottom: 10, fontSize: 10, textAlign: 'center' },
   verse: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 8, paddingVertical: 9, borderLeftWidth: 3, borderLeftColor: 'transparent', borderRadius: 5 },
   verseNumber: { width: 29, paddingTop: 2, fontWeight: '800' }, verseText: { flex: 1, fontFamily: 'serif' },
