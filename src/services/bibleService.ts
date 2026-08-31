@@ -30,6 +30,15 @@ function withChapterNumber(chapter: BibleChapter, capitulo: number): BibleChapte
   return { capitulo, versiculos: chapter.versiculos.map((verse) => ({ ...verse })) };
 }
 
+export function getHebrewPsalmChapterNumbers(sourceChapterNumber: number): number[] {
+  if (sourceChapterNumber >= 1 && sourceChapterNumber <= 8) return [sourceChapterNumber];
+  if (sourceChapterNumber === 9) return [9, 10];
+  if (sourceChapterNumber >= 10 && sourceChapterNumber <= 146) return [sourceChapterNumber + 1];
+  if (sourceChapterNumber === 147) return [146, 147];
+  if (sourceChapterNumber >= 148 && sourceChapterNumber <= 150) return [sourceChapterNumber];
+  return [];
+}
+
 function buildMasoreticPsalms(source: BibleBook): BibleBook {
   const sourceChapter = (number: number) => source.capitulos[number - 1];
   const chapters: BibleChapter[] = [];
@@ -38,13 +47,14 @@ function buildMasoreticPsalms(source: BibleBook): BibleBook {
     chapters.push(withChapterNumber(sourceChapter(number), number));
   }
 
+  const psalmNine = sourceChapter(9).versiculos;
   chapters.push({
     capitulo: 9,
-    versiculos: sourceChapter(9).versiculos.filter((verse) => verse.numero <= 21).map((verse) => ({ ...verse })),
+    versiculos: psalmNine.filter((verse) => verse.numero <= 21).map((verse) => ({ ...verse })),
   });
   chapters.push({
     capitulo: 10,
-    versiculos: sourceChapter(9).versiculos
+    versiculos: psalmNine
       .filter((verse) => verse.numero >= 22)
       .map((verse) => ({ ...verse, numero: verse.numero - 21 })),
   });
@@ -53,13 +63,14 @@ function buildMasoreticPsalms(source: BibleBook): BibleBook {
     chapters.push(withChapterNumber(sourceChapter(number - 1), number));
   }
 
+  const psalmOneHundredThirteen = sourceChapter(113).versiculos;
   chapters.push({
     capitulo: 114,
-    versiculos: sourceChapter(113).versiculos.filter((verse) => verse.numero <= 8).map((verse) => ({ ...verse })),
+    versiculos: psalmOneHundredThirteen.filter((verse) => verse.numero <= 8).map((verse) => ({ ...verse })),
   });
   chapters.push({
     capitulo: 115,
-    versiculos: sourceChapter(113).versiculos
+    versiculos: psalmOneHundredThirteen
       .filter((verse) => verse.numero >= 9)
       .map((verse) => ({ ...verse, numero: verse.numero - 8 })),
   });
