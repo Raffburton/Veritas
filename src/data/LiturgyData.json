@@ -1,0 +1,178 @@
+{
+  "metadata": {
+    "isExample": true,
+    "weekStart": "2026-08-31",
+    "weekEnd": "2026-09-06",
+    "language": "pt-BR"
+  },
+  "days": [
+    {
+      "date": "2026-08-31",
+      "weekday": "segunda-feira",
+      "liturgicalSeason": "Tempo Comum",
+      "liturgicalColor": "verde",
+      "firstReading": {
+        "reference": "1Cor 2,1-5",
+        "title": "A fé apoiada no poder de Deus",
+        "summary": "Paulo recorda que anunciou o mistério de Deus com humildade e confiança no Espírito."
+      },
+      "psalm": {
+        "reference": "Sl 118(119)",
+        "response": "Quanto eu amo, ó Senhor, a vossa lei!"
+      },
+      "gospel": {
+        "reference": "Lc 4,16-30",
+        "title": "Jesus ensina na sinagoga de Nazaré",
+        "summary": "Jesus proclama a realização das Escrituras e convida seus ouvintes a acolherem a graça de Deus."
+      },
+      "saintOfTheDay": {
+        "name": "São Raimundo Nonato",
+        "description": "Religioso mercedário lembrado por seu serviço aos cativos e pela dedicação à evangelização."
+      }
+    },
+    {
+      "date": "2026-09-01",
+      "weekday": "terça-feira",
+      "liturgicalSeason": "Tempo Comum",
+      "liturgicalColor": "verde",
+      "firstReading": {
+        "reference": "1Cor 2,10b-16",
+        "title": "Recebemos o Espírito que vem de Deus",
+        "summary": "O Espírito permite reconhecer os dons de Deus e compreender sua sabedoria."
+      },
+      "psalm": {
+        "reference": "Sl 144(145)",
+        "response": "É justo o Senhor em seus caminhos."
+      },
+      "gospel": {
+        "reference": "Lc 4,31-37",
+        "title": "Jesus ensina com autoridade",
+        "summary": "Em Cafarnaum, a palavra de Jesus liberta e desperta admiração entre o povo."
+      },
+      "saintOfTheDay": {
+        "name": "Santa Beatriz da Silva",
+        "description": "Religiosa portuguesa que dedicou sua vida à oração e fundou a Ordem da Imaculada Conceição."
+      }
+    },
+    {
+      "date": "2026-09-02",
+      "weekday": "quarta-feira",
+      "liturgicalSeason": "Tempo Comum",
+      "liturgicalColor": "verde",
+      "firstReading": {
+        "reference": "1Cor 3,1-9",
+        "title": "Somos colaboradores de Deus",
+        "summary": "Paulo ensina que toda missão cresce pela ação de Deus e não pelo prestígio humano."
+      },
+      "psalm": {
+        "reference": "Sl 32(33)",
+        "response": "Feliz o povo que o Senhor escolheu por sua herança."
+      },
+      "gospel": {
+        "reference": "Lc 4,38-44",
+        "title": "Jesus cura e anuncia o Reino",
+        "summary": "Jesus acolhe os enfermos, retira-se para rezar e continua sua missão em outras cidades."
+      },
+      "saintOfTheDay": {
+        "name": "Santos Mártires de Nicomédia",
+        "description": "Cristãos recordados pelo testemunho de fé mantido em meio às perseguições."
+      }
+    },
+    {
+      "date": "2026-09-03",
+      "weekday": "quinta-feira",
+      "liturgicalSeason": "Tempo Comum",
+      "liturgicalColor": "branco",
+      "firstReading": {
+        "reference": "1Cor 3,18-23",
+        "title": "Tudo é vosso, mas vós sois de Cristo",
+        "summary": "A sabedoria cristã rejeita a vaidade e reconhece que todas as coisas pertencem a Deus."
+      },
+      "psalm": {
+        "reference": "Sl 23(24)",
+        "response": "Ao Senhor pertence a terra e o que ela encerra."
+      },
+      "gospel": {
+        "reference": "Lc 5,1-11",
+        "title": "A pesca abundante",
+        "summary": "Pedro confia na palavra de Jesus e é chamado, com seus companheiros, para uma nova missão."
+      },
+      "saintOfTheDay": {
+        "name": "São Gregório Magno",
+        "description": "Papa e doutor da Igreja, destacado pelo cuidado pastoral, pela liturgia e pelo serviço aos necessitados."
+      }
+    },
+    {
+      "date": "2026-09-04",
+      "weekday": "sexta-feira",
+      "liturgicalSeason": "Tempo Comum",
+      "liturgicalColor": "verde",
+      "firstReading": {
+        "reference": "1Cor 4,1-5",
+        "title": "Servidores de Cristo",
+        "summary": "Paulo convida a servir com fidelidade e a deixar o julgamento definitivo nas mãos do Senhor."
+      },
+      "psalm": {
+        "reference": "Sl 36(37)",
+        "response": "A salvação de quem é justo vem de Deus."
+      },
+      "gospel": {
+        "reference": "Lc 5,33-39",
+        "title": "O vinho novo",
+        "summary": "Jesus apresenta a novidade do Reino e ensina que ela pede um coração renovado."
+      },
+      "saintOfTheDay": {
+        "name": "Santa Rosália",
+        "description": "Virgem eremita venerada especialmente em Palermo por sua vida de oração e penitência."
+      }
+    },
+    {
+      "date": "2026-09-05",
+      "weekday": "sábado",
+      "liturgicalSeason": "Tempo Comum",
+      "liturgicalColor": "branco",
+      "firstReading": {
+        "reference": "1Cor 4,6b-15",
+        "title": "Gerados em Cristo pelo Evangelho",
+        "summary": "Paulo descreve o serviço apostólico e recorda à comunidade sua paternidade espiritual."
+      },
+      "psalm": {
+        "reference": "Sl 144(145)",
+        "response": "O Senhor está perto da pessoa que o invoca."
+      },
+      "gospel": {
+        "reference": "Lc 6,1-5",
+        "title": "O Filho do Homem é senhor do sábado",
+        "summary": "Jesus revela que a lei deve ser compreendida à luz da misericórdia e do bem da pessoa."
+      },
+      "saintOfTheDay": {
+        "name": "Santa Teresa de Calcutá",
+        "description": "Religiosa missionária conhecida pelo serviço aos pobres, enfermos e abandonados."
+      }
+    },
+    {
+      "date": "2026-09-06",
+      "weekday": "domingo",
+      "liturgicalSeason": "Tempo Comum",
+      "liturgicalColor": "verde",
+      "firstReading": {
+        "reference": "Sb 9,13-18",
+        "title": "A sabedoria vem de Deus",
+        "summary": "A humanidade necessita do Espírito e da sabedoria divina para reconhecer o caminho de Deus."
+      },
+      "psalm": {
+        "reference": "Sl 89(90)",
+        "response": "Vós fostes, ó Senhor, um refúgio para nós."
+      },
+      "gospel": {
+        "reference": "Lc 14,25-33",
+        "title": "As exigências do discipulado",
+        "summary": "Jesus convida a avaliar com liberdade e firmeza o compromisso de segui-lo."
+      },
+      "saintOfTheDay": {
+        "name": "São Zacarias",
+        "description": "Profeta bíblico que anunciou esperança e renovação ao povo de Deus."
+      }
+    }
+  ]
+}
