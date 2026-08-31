@@ -10,8 +10,9 @@ import {
   useTheme,
   type AppTheme,
 } from '../context/ThemeContext';
+import { getImportantCatholicDates } from '../services/importantDatesService';
 
-type Panel = 'theme' | 'font' | 'devotion' | 'about' | 'technologies' | 'support' | null;
+type Panel = 'theme' | 'font' | 'dates' | 'devotion' | 'about' | 'technologies' | 'support' | null;
 
 const THEME_LABELS: Record<AppTheme, string> = {
   'light-white': 'Claro',
@@ -23,6 +24,7 @@ const THEME_LABELS: Record<AppTheme, string> = {
 const PANEL_TITLES: Record<Exclude<Panel, null>, string> = {
   theme: 'Tema da leitura',
   font: 'Tamanho do texto',
+  dates: 'Datas importantes',
   devotion: 'Consagração e devoção',
   about: 'Sobre o Veritas',
   technologies: 'Tecnologias',
@@ -73,6 +75,7 @@ export function SettingsScreen() {
     decreaseFontSize,
   } = useTheme();
   const [panel, setPanel] = useState<Panel>(null);
+  const importantDates = getImportantCatholicDates();
 
   function closePanel() {
     setPanel(null);
@@ -101,8 +104,15 @@ export function SettingsScreen() {
           />
         </View>
 
-        <Text style={[styles.sectionLabel, { color: colors.mutedText }]}>DEVOÇÃO PESSOAL</Text>
+        <Text style={[styles.sectionLabel, { color: colors.mutedText }]}>CALENDÁRIO E DEVOÇÃO</Text>
         <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <SettingsRow
+            icon="calendar-outline"
+            title="Datas importantes"
+            description={`Celebrações de ${new Date().getFullYear()}`}
+            onPress={() => setPanel('dates')}
+            colors={colors}
+          />
           <SettingsRow
             icon="heart-circle-outline"
             title="Consagração e devoção"
@@ -215,6 +225,25 @@ export function SettingsScreen() {
                       <Text style={[styles.fontButtonText, { color: colors.primary }]}>A+</Text>
                     </Pressable>
                   </View>
+                </View>
+              ) : null}
+
+              {panel === 'dates' ? (
+                <View>
+                  <Text style={[styles.datesIntro, { color: colors.mutedText }]}>Principais celebrações do calendário católico no Brasil em {new Date().getFullYear()}. Datas móveis são recalculadas a cada ano.</Text>
+                  {importantDates.map((item) => (
+                    <View key={item.id} style={[styles.dateCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                      <View style={[styles.dateBadge, { borderColor: colors.primary }]}>
+                        <Text style={[styles.dateDay, { color: colors.primary }]}>{String(item.date.getDate()).padStart(2, '0')}</Text>
+                        <Text style={[styles.dateMonth, { color: colors.mutedText }]}>{item.date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()}</Text>
+                      </View>
+                      <View style={styles.dateTextArea}>
+                        <Text style={[styles.dateTitle, { color: colors.text }]}>{item.title}</Text>
+                        <Text style={[styles.dateDescription, { color: colors.mutedText }]}>{item.description}</Text>
+                      </View>
+                    </View>
+                  ))}
+                  <Text style={[styles.localCalendarNotice, { color: colors.mutedText }]}>Algumas celebrações podem ter observância própria conforme a diocese.</Text>
                 </View>
               ) : null}
 
@@ -341,6 +370,13 @@ const styles = StyleSheet.create({
   fontButtonText: { fontSize: 20, fontWeight: '800' },
   fontValueBox: { alignItems: 'center', minWidth: 58 }, fontValue: { fontSize: 24, fontWeight: '800' },
   fontUnit: { marginTop: 1, fontSize: 11 },
+  datesIntro: { marginBottom: 15, fontSize: 13, lineHeight: 19 },
+  dateCard: { flexDirection: 'row', alignItems: 'center', gap: 13, marginBottom: 9, padding: 12, borderWidth: 1, borderRadius: 12 },
+  dateBadge: { width: 52, height: 56, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 10 },
+  dateDay: { fontSize: 20, fontWeight: '800' }, dateMonth: { fontSize: 9, fontWeight: '800' },
+  dateTextArea: { flex: 1 }, dateTitle: { marginBottom: 4, fontFamily: 'serif', fontSize: 16, fontWeight: '700' },
+  dateDescription: { fontSize: 12, lineHeight: 17 },
+  localCalendarNotice: { marginTop: 8, fontSize: 10, lineHeight: 15, textAlign: 'center' },
   devotionIntro: { alignItems: 'center', marginBottom: 18 },
   devotionIcon: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', marginBottom: 10, borderWidth: 1, borderRadius: 27 },
   devotionTitle: { fontFamily: 'serif', fontSize: 21, fontWeight: '700', textAlign: 'center' },

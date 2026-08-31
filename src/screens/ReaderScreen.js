@@ -3,219 +3,129 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
 import { useTheme } from '../context/ThemeContext';
-import { getLiturgyWeek } from '../services/liturgyService';
+import {
+  getLiturgicalCalendarMetadata,
+  getLiturgicalWeek,
+  toLocalIsoDate,
+} from '../services/liturgicalCalendarService';
 
-function ReadingSection({ heading, reference, title, children, colors, fontSize }) {
+const WEEKDAYS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+
+function dateFromIso(isoDate) {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function ReadingCard({ heading, readings, colors, fontSize }) {
+  if (!readings.length) return null;
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-      <Text style={[styles.sectionHeading, { color: colors.primary, fontSize: fontSize - 2 }]}>
-        {heading}
-      </Text>
-      <Text style={[styles.reference, { color: colors.text, fontSize: fontSize + 2 }]}>
-        {reference}
-      </Text>
-      {title ? (
-        <Text style={[styles.readingTitle, { color: colors.text, fontSize }]}>{title}</Text>
-      ) : null}
-      <Text
-        style={[
-          styles.body,
-          { color: colors.mutedText, fontSize, lineHeight: Math.round(fontSize * 1.55) },
-        ]}
-      >
-        {children}
-      </Text>
+      <Text style={[styles.sectionHeading, { color: colors.primary, fontSize: Math.max(fontSize - 2, 12) }]}>{heading}</Text>
+      {readings.map((reading, index) => (
+        <View key={`${reading.reference}-${index}`} style={index > 0 ? styles.additionalReading : undefined}>
+          <Text style={[styles.reference, { color: colors.text, fontSize: fontSize + 2 }]}>{reading.reference}</Text>
+          {reading.title ? <Text style={[styles.readingTitle, { color: colors.mutedText, fontSize }]}>{reading.title}</Text> : null}
+          {reading.response ? <Text style={[styles.response, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.5) }]}>{reading.response}</Text> : null}
+        </View>
+      ))}
     </View>
   );
 }
 
 export function ReaderScreen() {
-  const {
-    colors,
-    theme,
-    fontSize,
-    toggleTheme,
-    increaseFontSize,
-    decreaseFontSize,
-  } = useTheme();
-  const week = useMemo(() => getLiturgyWeek(), []);
-  const [selectedDate, setSelectedDate] = useState(week[0]?.date ?? '');
+  const { colors, theme, fontSize, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
+  const week = useMemo(() => getLiturgicalWeek(new Date()), []);
+  const today = toLocalIsoDate(new Date());
+  const [selectedDate, setSelectedDate] = useState(
+    week.some((day) => day.date === today) ? today : (week[0]?.date ?? ''),
+  );
   const selectedLiturgy = week.find((day) => day.date === selectedDate);
+  const metadata = getLiturgicalCalendarMetadata();
 
   if (!selectedLiturgy) {
     return (
       <View style={[styles.emptyState, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.text, fontSize }}>Liturgia não encontrada.</Text>
+        <Text style={{ color: colors.text, fontSize }}>Calendário litúrgico indisponível para esta data.</Text>
       </View>
     );
   }
 
+  const selectedDateObject = dateFromIso(selectedLiturgy.date);
+  const allReadings = [
+    ...selectedLiturgy.readings.firstReading,
+    ...selectedLiturgy.readings.psalm,
+    ...selectedLiturgy.readings.secondReading,
+    ...selectedLiturgy.readings.gospel,
+  ];
   const liturgyReference = {
     source: 'liturgy',
     id: `liturgy:${selectedLiturgy.date}`,
-    title: `Liturgia de ${selectedLiturgy.weekday}`,
+    title: selectedLiturgy.celebration,
     location: selectedLiturgy.date.split('-').reverse().join('/'),
-    excerpt: `${selectedLiturgy.firstReading.reference}: ${selectedLiturgy.firstReading.summary}`,
+    excerpt: allReadings.map((reading) => reading.reference).join(' · '),
     date: selectedLiturgy.date,
     section: 'Liturgia do dia',
   };
   const shareText = [
-    liturgyReference.title,
+    selectedLiturgy.celebration,
     liturgyReference.location,
+    `Cor litúrgica: ${selectedLiturgy.color}`,
     '',
-    `Primeira leitura — ${selectedLiturgy.firstReading.reference}`,
-    selectedLiturgy.firstReading.summary,
-    '',
-    `Salmo — ${selectedLiturgy.psalm.reference}`,
-    selectedLiturgy.psalm.response,
-    '',
-    `Evangelho — ${selectedLiturgy.gospel.reference}`,
-    selectedLiturgy.gospel.summary,
+    ...allReadings.map((reading) => `${reading.reference}${reading.response ? ` — ${reading.response}` : ''}`),
     '',
     'Compartilhado pelo Veritas',
   ].join('\n');
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <ScrollView
-        style={{ backgroundColor: colors.background }}
-        contentContainerStyle={styles.content}
-      >
-        <Text style={[styles.screenTitle, { color: colors.text, fontSize: fontSize + 10 }]}>
-          Liturgia da semana
-        </Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.daySelector}
-        >
+      <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
+        <Text style={[styles.screenTitle, { color: colors.text, fontSize: fontSize + 10 }]}>Liturgia da semana</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daySelector}>
           {week.map((day) => {
-            const isSelected = day.date === selectedDate;
-
+            const date = dateFromIso(day.date);
+            const selected = day.date === selectedDate;
             return (
-              <Pressable
-                key={day.date}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-                onPress={() => setSelectedDate(day.date)}
-                style={[
-                  styles.dayButton,
-                  {
-                    backgroundColor: isSelected ? colors.primary : colors.surface,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.dayButtonText,
-                    {
-                      color: isSelected ? colors.background : colors.text,
-                      fontSize: Math.max(fontSize - 3, 12),
-                    },
-                  ]}
-                >
-                  {day.weekday.replace('-feira', '')}
-                </Text>
-                <Text
-                  style={{
-                    color: isSelected ? colors.background : colors.mutedText,
-                    fontSize: Math.max(fontSize - 4, 11),
-                  }}
-                >
-                  {day.date.slice(8, 10)}/{day.date.slice(5, 7)}
-                </Text>
+              <Pressable key={day.date} accessibilityRole="button" accessibilityState={{ selected }}
+                onPress={() => setSelectedDate(day.date)} style={[styles.dayButton, {
+                  backgroundColor: selected ? colors.primary : colors.surface,
+                  borderColor: selected ? colors.primary : colors.border,
+                }]}>
+                <Text style={[styles.dayButtonText, { color: selected ? colors.background : colors.text,
+                  fontSize: Math.max(fontSize - 3, 12) }]}>{WEEKDAYS[date.getDay()].replace('-feira', '')}</Text>
+                <Text style={{ color: selected ? colors.background : colors.mutedText,
+                  fontSize: Math.max(fontSize - 4, 11) }}>{String(date.getDate()).padStart(2, '0')}/{String(date.getMonth() + 1).padStart(2, '0')}</Text>
               </Pressable>
             );
           })}
         </ScrollView>
 
         <View style={styles.dayHeader}>
-          <Text style={[styles.dayTitle, { color: colors.text, fontSize: fontSize + 5 }]}>
-            {selectedLiturgy.weekday}
-          </Text>
+          <Text style={[styles.dayTitle, { color: colors.text, fontSize: fontSize + 4 }]}>{selectedLiturgy.celebration}</Text>
           <Text style={[styles.dayMetadata, { color: colors.mutedText, fontSize: fontSize - 1 }]}>
-            {selectedLiturgy.liturgicalSeason} · cor {selectedLiturgy.liturgicalColor}
+            {WEEKDAYS[selectedDateObject.getDay()]} · cor {selectedLiturgy.color.toLocaleLowerCase('pt-BR')}
           </Text>
         </View>
 
         <ContentActions reference={liturgyReference} shareText={shareText} />
+        <ReadingCard heading="Primeira leitura" readings={selectedLiturgy.readings.firstReading} colors={colors} fontSize={fontSize} />
+        <ReadingCard heading="Salmo responsorial" readings={selectedLiturgy.readings.psalm} colors={colors} fontSize={fontSize} />
+        <ReadingCard heading="Segunda leitura" readings={selectedLiturgy.readings.secondReading} colors={colors} fontSize={fontSize} />
+        <ReadingCard heading="Evangelho" readings={selectedLiturgy.readings.gospel} colors={colors} fontSize={fontSize} />
+        <ReadingCard heading="Leituras adicionais" readings={selectedLiturgy.readings.extras} colors={colors} fontSize={fontSize} />
 
-        <ReadingSection
-          heading="Primeira leitura"
-          reference={selectedLiturgy.firstReading.reference}
-          title={selectedLiturgy.firstReading.title}
-          colors={colors}
-          fontSize={fontSize}
-        >
-          {selectedLiturgy.firstReading.summary}
-        </ReadingSection>
-
-        <ReadingSection
-          heading="Salmo responsorial"
-          reference={selectedLiturgy.psalm.reference}
-          colors={colors}
-          fontSize={fontSize}
-        >
-          {selectedLiturgy.psalm.response}
-        </ReadingSection>
-
-        <ReadingSection
-          heading="Evangelho"
-          reference={selectedLiturgy.gospel.reference}
-          title={selectedLiturgy.gospel.title}
-          colors={colors}
-          fontSize={fontSize}
-        >
-          {selectedLiturgy.gospel.summary}
-        </ReadingSection>
-
-        <ReadingSection
-          heading="Santo do dia"
-          reference={selectedLiturgy.saintOfTheDay.name}
-          colors={colors}
-          fontSize={fontSize}
-        >
-          {selectedLiturgy.saintOfTheDay.description}
-        </ReadingSection>
+        <Text style={[styles.sourceNotice, { color: colors.mutedText }]}>
+          Calendário {metadata.year} para {metadata.region}. Celebrações próprias podem variar conforme a diocese.
+        </Text>
       </ScrollView>
 
-      <View
-        accessibilityLabel="Controles de personalização"
-        style={[
-          styles.floatingControls,
-          { backgroundColor: colors.surface, borderColor: colors.border },
-        ]}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Diminuir tamanho do texto"
-          hitSlop={8}
-          onPress={decreaseFontSize}
-          style={({ pressed }) => [styles.controlButton, pressed && styles.controlPressed]}
-        >
+      <View style={[styles.floatingControls, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Pressable accessibilityLabel="Diminuir tamanho do texto" hitSlop={8} onPress={decreaseFontSize} style={styles.controlButton}>
           <Text style={[styles.controlText, { color: colors.text }]}>A−</Text>
         </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Mudar tema. Tema atual: ${theme}`}
-          accessibilityHint="Alterna para o próximo tema de leitura"
-          hitSlop={8}
-          onPress={toggleTheme}
-          style={({ pressed }) => [styles.controlButton, pressed && styles.controlPressed]}
-        >
+        <Pressable accessibilityLabel={`Mudar tema. Tema atual: ${theme}`} hitSlop={8} onPress={toggleTheme} style={styles.controlButton}>
           <Text style={[styles.themeControlText, { color: colors.primary }]}>◐</Text>
         </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Aumentar tamanho do texto"
-          hitSlop={8}
-          onPress={increaseFontSize}
-          style={({ pressed }) => [styles.controlButton, pressed && styles.controlPressed]}
-        >
+        <Pressable accessibilityLabel="Aumentar tamanho do texto" hitSlop={8} onPress={increaseFontSize} style={styles.controlButton}>
           <Text style={[styles.controlText, { color: colors.text }]}>A+</Text>
         </Pressable>
       </View>
@@ -224,102 +134,23 @@ export function ReaderScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    padding: 18,
-    paddingBottom: 112,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  screenTitle: {
-    marginBottom: 16,
-    fontWeight: '700',
-  },
-  daySelector: {
-    gap: 8,
-    paddingBottom: 20,
-  },
-  dayButton: {
-    minWidth: 76,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  dayButtonText: {
-    marginBottom: 2,
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  dayHeader: {
-    marginBottom: 14,
-  },
-  dayTitle: {
-    fontWeight: '700',
-    textTransform: 'capitalize',
-  },
-  dayMetadata: {
-    marginTop: 4,
-  },
-  card: {
-    marginBottom: 14,
-    padding: 18,
-    borderWidth: 1,
-    borderRadius: 14,
-  },
-  sectionHeading: {
-    marginBottom: 8,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  reference: {
-    marginBottom: 5,
-    fontWeight: '700',
-  },
-  readingTitle: {
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  body: {
-    fontWeight: '400',
-  },
-  floatingControls: {
-    position: 'absolute',
-    right: 18,
-    bottom: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 6,
-    borderWidth: 1,
-    borderRadius: 28,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.22,
-    shadowRadius: 6,
-  },
-  controlButton: {
-    width: 46,
-    height: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 23,
-  },
-  controlPressed: {
-    opacity: 0.55,
-  },
-  controlText: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  themeControlText: {
-    fontSize: 27,
-    fontWeight: '700',
-  },
+  screen: { flex: 1 }, content: { padding: 18, paddingBottom: 112 },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  screenTitle: { marginBottom: 16, fontFamily: 'serif', fontWeight: '700' },
+  daySelector: { gap: 8, paddingBottom: 20 },
+  dayButton: { minWidth: 76, alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderRadius: 12 },
+  dayButtonText: { marginBottom: 2, fontWeight: '600', textTransform: 'capitalize' },
+  dayHeader: { marginBottom: 14 }, dayTitle: { fontFamily: 'serif', fontWeight: '700' },
+  dayMetadata: { marginTop: 5, textTransform: 'capitalize' },
+  card: { marginBottom: 14, padding: 18, borderWidth: 1, borderRadius: 14 },
+  sectionHeading: { marginBottom: 9, fontWeight: '800', textTransform: 'uppercase' },
+  reference: { marginBottom: 5, fontWeight: '700' }, readingTitle: { lineHeight: 22 },
+  response: { marginTop: 9, fontFamily: 'serif', fontStyle: 'italic' },
+  additionalReading: { marginTop: 14, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth },
+  sourceNotice: { marginTop: 4, fontSize: 10, lineHeight: 15, textAlign: 'center' },
+  floatingControls: { position: 'absolute', right: 18, bottom: 18, flexDirection: 'row', alignItems: 'center',
+    padding: 6, borderWidth: 1, borderRadius: 28, elevation: 6, shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.22, shadowRadius: 6 },
+  controlButton: { width: 46, height: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 23 },
+  controlText: { fontSize: 17, fontWeight: '700' }, themeControlText: { fontSize: 27, fontWeight: '700' },
 });
