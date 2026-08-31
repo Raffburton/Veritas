@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -11,6 +12,8 @@ import {
   type AppTheme,
 } from '../context/ThemeContext';
 import { getImportantCatholicDates } from '../services/importantDatesService';
+
+const PIX_KEY = 'e8d32269-fa6a-4d2f-8817-befb4accd685';
 
 type Panel = 'theme' | 'font' | 'dates' | 'devotion' | 'about' | 'technologies' | 'support' | null;
 
@@ -75,10 +78,17 @@ export function SettingsScreen() {
     decreaseFontSize,
   } = useTheme();
   const [panel, setPanel] = useState<Panel>(null);
+  const [pixCopied, setPixCopied] = useState(false);
   const importantDates = getImportantCatholicDates();
 
   function closePanel() {
     setPanel(null);
+    setPixCopied(false);
+  }
+
+  async function copyPixKey() {
+    await Clipboard.setStringAsync(PIX_KEY);
+    setPixCopied(true);
   }
 
   return (
@@ -321,10 +331,22 @@ export function SettingsScreen() {
                       <Text style={[styles.pixTitle, { color: colors.text }]}>Doação via PIX</Text>
                     </View>
                     <Text style={[styles.pixDetail, { color: colors.mutedText }]}>Banco Inter · Rafael Matos</Text>
-                    <Text selectable style={[styles.pixKey, { color: colors.text, borderColor: colors.border }]}>
-                      e8d32269-fa6a-4d2f-8817-befb4accd685
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Copiar chave PIX"
+                      onPress={() => void copyPixKey()}
+                      style={({ pressed }) => [
+                        styles.pixKeyButton,
+                        { borderColor: pixCopied ? colors.primary : colors.border },
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={[styles.pixKey, { color: colors.text }]}>{PIX_KEY}</Text>
+                      <Ionicons name={pixCopied ? 'checkmark-circle' : 'copy-outline'} size={19} color={colors.primary} />
+                    </Pressable>
+                    <Text style={[styles.pixHint, { color: pixCopied ? colors.primary : colors.mutedText }]}>
+                      {pixCopied ? 'Chave copiada!' : 'Toque na chave para copiar.'}
                     </Text>
-                    <Text style={[styles.pixHint, { color: colors.mutedText }]}>Mantenha a chave pressionada para copiá-la.</Text>
                   </View>
                   <Pressable accessibilityRole="link" onPress={() => void Linking.openURL('mailto:raffburton.dev@gmail.com')}
                     style={[styles.contactButton, { borderColor: colors.border }]}>
@@ -411,7 +433,8 @@ const styles = StyleSheet.create({
   pixHeader: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   pixTitle: { fontSize: 15, fontWeight: '800' },
   pixDetail: { marginTop: 9, fontSize: 13, fontWeight: '600' },
-  pixKey: { marginTop: 11, paddingVertical: 11, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8, fontSize: 12, lineHeight: 18 },
+  pixKeyButton: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 11, paddingVertical: 11, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8 },
+  pixKey: { flex: 1, fontSize: 12, lineHeight: 18 },
   pixHint: { marginTop: 7, fontSize: 10 },
   contactButton: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 11, minHeight: 58, marginTop: 10, paddingHorizontal: 13, borderWidth: 1, borderRadius: 11 },
   contactValue: { flex: 1, fontSize: 13, fontWeight: '600' },
