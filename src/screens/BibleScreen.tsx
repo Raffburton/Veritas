@@ -13,6 +13,75 @@ import type { ContentReference } from '../types/library';
 type Filter = 'Todos' | 'Antigo Testamento' | 'Novo Testamento';
 type Props = BottomTabScreenProps<RootTabParamList, 'Bible'>;
 
+const CONVENTIONAL_BOOK_NAMES = [
+  'Gênesis', 'Êxodo', 'Levítico', 'Números', 'Deuteronômio', 'Josué', 'Juízes', 'Rute',
+  '1 Samuel', '2 Samuel', '1 Reis', '2 Reis', '1 Crônicas', '2 Crônicas', 'Esdras', 'Neemias',
+  'Tobias', 'Judit', 'Ester', '1 Macabeus', '2 Macabeus', 'Jó', 'Salmos', 'Provérbios',
+  'Eclesiastes', 'Cântico dos Cânticos', 'Sabedoria', 'Eclesiástico', 'Isaías', 'Jeremias',
+  'Lamentações', 'Baruc', 'Ezequiel', 'Daniel', 'Oseias', 'Joel', 'Amós', 'Abdias', 'Jonas',
+  'Miqueias', 'Naum', 'Habacuc', 'Sofonias', 'Ageu', 'Zacarias', 'Malaquias', 'Mateus',
+  'Marcos', 'Lucas', 'João', 'Atos', 'Romanos', '1 Coríntios', '2 Coríntios', 'Gálatas',
+  'Efésios', 'Filipenses', 'Colossenses', '1 Tessalonicenses', '2 Tessalonicenses', '1 Timóteo',
+  '2 Timóteo', 'Tito', 'Filêmon', 'Hebreus', 'Tiago', '1 Pedro', '2 Pedro', '1 João',
+  '2 João', '3 João', 'Judas', 'Apocalipse',
+];
+
+type ParsedBibleReference = {
+  bookIndex: number;
+  chapter?: number;
+  verses: number[];
+  valid: boolean;
+};
+
+function normalizeSearch(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function aliasesForBook(index: number) {
+  const summary = bibleBooks[index];
+  const aliases = [summary.name, summary.abbreviation, CONVENTIONAL_BOOK_NAMES[index]];
+  if (index === 22) aliases.push('Salmo');
+  if (index === 49) aliases.push('São João');
+  return [...new Set(aliases.map(normalizeSearch).filter(Boolean))].sort((a, b) => b.length - a.length);
+}
+
+function parseBibleReference(value: string): ParsedBibleReference | null {
+  const normalized = normalizeSearch(value);
+  if (!normalized) return null;
+
+  const candidates = bibleBooks.flatMap((book) =>
+    aliasesForBook(book.index).map((alias) => ({ book, alias })),
+  ).sort((a, b) => b.alias.length - a.alias.length);
+  const match = candidates.find(({ alias }) => normalized === alias || normalized.startsWith(`${alias} `));
+  if (!match) return null;
+
+  const remainder = normalized.slice(match.alias.length).trim();
+  if (!remainder) return { bookIndex: match.book.index, verses: [], valid: true };
+  const numbers = remainder.match(/\d+/g)?.map(Number) ?? [];
+  if (!numbers.length || numbers.length > 3) {
+    return { bookIndex: match.book.index, verses: [], valid: false };
+  }
+
+  const [chapterNumber, verseStart, verseEnd] = numbers;
+  const chapter = getBibleChapter(match.book.index, chapterNumber);
+  if (!chapter) return { bookIndex: match.book.index, chapter: chapterNumber, verses: [], valid: false };
+  if (verseStart === undefined) {
+    return { bookIndex: match.book.index, chapter: chapterNumber, verses: [], valid: true };
+  }
+
+  const finalVerse = verseEnd ?? verseStart;
+  const validRange = verseStart > 0 && finalVerse >= verseStart && finalVerse <= chapter.versiculos.length;
+  const verses = validRange
+    ? Array.from({ length: finalVerse - verseStart + 1 }, (_, index) => verseStart + index)
+    : [];
+  return { bookIndex: match.book.index, chapter: chapterNumber, verses, valid: validRange };
+}
+
 function versesLabel(numbers: number[]) {
   if (!numbers.length) return '';
   const sorted = [...numbers].sort((a, b) => a - b);
@@ -58,22 +127,29 @@ export function BibleScreen({ route, navigation }: Props) {
   );
 
   const filteredBooks = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase('pt-BR');
+    const normalized = normalizeSearch(query);
+    const parsed = parseBibleReference(query);
     return bibleBooks.filter((book) =>
       (filter === 'Todos' || book.testament === filter) &&
-      (!normalized || book.name.toLocaleLowerCase('pt-BR').includes(normalized) ||
-        book.abbreviation.toLocaleLowerCase('pt-BR').includes(normalized)),
+      (!normalized || parsed?.bookIndex === book.index || aliasesForBook(book.index).some((alias) => alias.includes(normalized))),
     );
   }, [filter, query]);
+  const parsedSearch = useMemo(() => parseBibleReference(query), [query]);
 
   const book = bookIndex === null ? null : getBibleBook(bookIndex);
   const summary = bookIndex === null ? null : bibleBooks[bookIndex];
   const chapter = bookIndex === null ? null : getBibleChapter(bookIndex, chapterNumber);
 
-  function openBook(index: number) {
+  function openBook(index: number, chapter = 1, verses: number[] = []) {
     setBookIndex(index);
-    setChapterNumber(1);
-    setSelectedVerses([]);
+    setChapterNumber(chapter);
+    setSelectedVerses(verses);
+    setQuery('');
+  }
+
+  function openSearchReference() {
+    if (!parsedSearch?.valid) return;
+    openBook(parsedSearch.bookIndex, parsedSearch.chapter ?? 1, parsedSearch.verses);
   }
 
   function chooseChapter(number: number) {
@@ -187,8 +263,9 @@ export function BibleScreen({ route, navigation }: Props) {
         <Text style={[styles.catalogSubtitle, { color: colors.mutedText }]}>73 livros · disponível offline</Text>
         <View style={[styles.search, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Ionicons name="search" size={19} color={colors.mutedText} />
-          <TextInput accessibilityLabel="Pesquisar livros da Bíblia" placeholder="Pesquisar livro"
+          <TextInput accessibilityLabel="Pesquisar livro, capítulo ou versículo" placeholder="Ex.: João 3,16 ou Salmo 91"
             placeholderTextColor={colors.mutedText} value={query} onChangeText={setQuery}
+            returnKeyType="search" onSubmitEditing={openSearchReference}
             style={[styles.searchInput, { color: colors.text, fontSize }]} />
         </View>
         <View style={styles.filters}>
@@ -212,7 +289,13 @@ export function BibleScreen({ route, navigation }: Props) {
         contentContainerStyle={styles.bookList}
         ListEmptyComponent={<Text style={[styles.empty, { color: colors.mutedText }]}>Nenhum livro encontrado.</Text>}
         renderItem={({ item }) => (
-          <Pressable accessibilityRole="button" onPress={() => openBook(item.index)} style={({ pressed }) => [
+          <Pressable accessibilityRole="button" onPress={() => {
+            if (parsedSearch?.valid && parsedSearch.bookIndex === item.index) {
+              openBook(item.index, parsedSearch.chapter ?? 1, parsedSearch.verses);
+            } else {
+              openBook(item.index);
+            }
+          }} style={({ pressed }) => [
             styles.book, { backgroundColor: colors.surface, borderColor: colors.border }, pressed && styles.pressed,
           ]}>
             <View style={[styles.bookIcon, { backgroundColor: colors.background }]}>
@@ -220,7 +303,13 @@ export function BibleScreen({ route, navigation }: Props) {
             </View>
             <View style={styles.bookText}>
               <Text style={[styles.bookName, { color: colors.text, fontSize }]}>{item.name}</Text>
-              <Text style={[styles.bookDetails, { color: colors.mutedText }]}>{item.chapterCount} {item.chapterCount === 1 ? 'capítulo' : 'capítulos'}</Text>
+              <Text style={[styles.bookDetails, { color: colors.mutedText }]}> 
+                {parsedSearch?.bookIndex === item.index && parsedSearch.chapter
+                  ? parsedSearch.valid
+                    ? `Abrir ${item.abbreviation} ${parsedSearch.chapter}${parsedSearch.verses.length ? `,${versesLabel(parsedSearch.verses)}` : ''}`
+                    : 'Referência fora dos limites deste livro'
+                  : `${item.chapterCount} ${item.chapterCount === 1 ? 'capítulo' : 'capítulos'}`}
+              </Text>
             </View>
             <Text style={[styles.abbreviation, { color: colors.mutedText }]}>{item.abbreviation}</Text>
             <Ionicons name="chevron-forward" size={17} color={colors.mutedText} />
