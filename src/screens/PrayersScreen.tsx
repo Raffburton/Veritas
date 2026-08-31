@@ -57,6 +57,117 @@ const PRAYERS: Prayer[] = [
       'Amém.',
     ],
   },
+  {
+    id: 'simbolo-dos-apostolos',
+    title: 'Símbolo dos Apóstolos',
+    description: 'Creio — profissão da fé cristã',
+    icon: 'shield-outline',
+    paragraphs: [
+      'Creio em Deus Pai todo-poderoso, Criador do céu e da terra; e em Jesus Cristo, seu único Filho, nosso Senhor; que foi concebido pelo poder do Espírito Santo; nasceu da Virgem Maria; padeceu sob Pôncio Pilatos, foi crucificado, morto e sepultado; desceu à mansão dos mortos; ressuscitou ao terceiro dia; subiu aos céus; está sentado à direita de Deus Pai todo-poderoso, donde há de vir a julgar os vivos e os mortos.',
+      'Creio no Espírito Santo; na Santa Igreja Católica; na comunhão dos santos; na remissão dos pecados; na ressurreição da carne; na vida eterna.',
+      'Amém.',
+    ],
+  },
+  {
+    id: 'salve-rainha',
+    title: 'Salve Rainha',
+    description: 'Súplica à Mãe de misericórdia',
+    icon: 'rose-outline',
+    paragraphs: [
+      'Salve, Rainha, Mãe de misericórdia, vida, doçura e esperança nossa, salve! A vós bradamos, os degredados filhos de Eva. A vós suspiramos, gemendo e chorando neste vale de lágrimas.',
+      'Eia, pois, advogada nossa, esses vossos olhos misericordiosos a nós volvei. E, depois deste desterro, mostrai-nos Jesus, bendito fruto do vosso ventre.',
+      'Ó clemente, ó piedosa, ó doce sempre Virgem Maria.',
+      'Rogai por nós, Santa Mãe de Deus, para que sejamos dignos das promessas de Cristo.',
+      'Amém.',
+    ],
+  },
+  {
+    id: 'consagracao-nossa-senhora',
+    title: 'Consagração a Nossa Senhora',
+    description: 'Entrega pessoal à proteção maternal de Maria',
+    icon: 'heart-circle-outline',
+    paragraphs: [
+      'Ó minha Senhora e minha Mãe, eu me ofereço inteiramente a vós e, em prova da minha devoção para convosco, vos consagro neste dia e para sempre os meus olhos, os meus ouvidos, a minha boca, o meu coração e inteiramente todo o meu ser.',
+      'E porque assim sou vosso, ó incomparável Mãe, guardai-me e defendei-me como coisa e propriedade vossa.',
+      'Amém.',
+    ],
+  },
+  {
+    id: 'angelus',
+    title: 'Oração do Ângelus',
+    description: 'Memória do mistério da Encarnação',
+    icon: 'notifications-outline',
+    paragraphs: [
+      'O Anjo do Senhor anunciou a Maria. E ela concebeu do Espírito Santo.',
+      'Ave Maria, cheia de graça, o Senhor é convosco. Bendita sois vós entre as mulheres e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós, pecadores, agora e na hora da nossa morte. Amém.',
+      'Eis aqui a serva do Senhor. Faça-se em mim segundo a vossa palavra.',
+      'Ave Maria, cheia de graça, o Senhor é convosco. Bendita sois vós entre as mulheres e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós, pecadores, agora e na hora da nossa morte. Amém.',
+      'E o Verbo se fez carne. E habitou entre nós.',
+      'Ave Maria, cheia de graça, o Senhor é convosco. Bendita sois vós entre as mulheres e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós, pecadores, agora e na hora da nossa morte. Amém.',
+      'Rogai por nós, Santa Mãe de Deus. Para que sejamos dignos das promessas de Cristo.',
+      'Oremos: Infundi, Senhor, em nossos corações a vossa graça, a fim de que, conhecendo pelo anúncio do Anjo a encarnação de Jesus Cristo, vosso Filho, cheguemos, por sua paixão e cruz, à glória da ressurreição. Por Cristo, nosso Senhor. Amém.',
+    ],
+  },
+  {
+    id: 'santo-anjo',
+    title: 'Santo Anjo do Senhor',
+    description: 'Oração ao Anjo da Guarda',
+    icon: 'shield-outline',
+    paragraphs: [
+      'Santo Anjo do Senhor, meu zeloso guardador, se a ti me confiou a piedade divina, sempre me rege, guarda, governa e ilumina.',
+      'Amém.',
+    ],
+  },
+  {
+    id: 'vinde-espirito-santo',
+    title: 'Vinde, Espírito Santo',
+    description: 'Invocação ao Espírito Consolador',
+    icon: 'flame-outline',
+    paragraphs: [
+      'Vinde, Espírito Santo, enchei os corações dos vossos fiéis e acendei neles o fogo do vosso amor. Enviai o vosso Espírito e tudo será criado. E renovareis a face da terra.',
+      'Oremos: Ó Deus, que instruístes os corações dos vossos fiéis com a luz do Espírito Santo, fazei que apreciemos retamente todas as coisas segundo o mesmo Espírito e gozemos sempre da sua consolação. Por Cristo, nosso Senhor.',
+      'Amém.',
+    ],
+  },
+  {
+    id: 'sao-francisco',
+    title: 'Oração de São Francisco',
+    description: 'Instrumento da paz de Cristo',
+    icon: 'leaf-outline',
+    paragraphs: [
+      'Senhor, fazei-me instrumento de vossa paz.',
+      'Concedei-me levar amor, perdão, união, verdade, esperança, luz e alegria a todos.',
+      'Que eu procure mais consolar, compreender e amar do que ser consolado, compreendido e amado.',
+      'Amém.',
+    ],
+  },
+  {
+    id: 'ato-de-contricao',
+    title: 'Ato de Contrição',
+    description: 'Arrependimento e pedido de misericórdia',
+    icon: 'heart-outline',
+    paragraphs: [
+      'Meu Deus, arrependo-me de todo o coração de vos ter ofendido, porque sois infinitamente bom e digno de todo amor.',
+      'Com a vossa graça, proponho firmemente evitar o pecado, reparar minhas faltas e buscar uma vida nova segundo o Evangelho.',
+      'Senhor, tende piedade de mim e concedei-me o vosso perdão.',
+      'Amém.',
+    ],
+  },
+];
+
+const PRAYER_GROUPS = [
+  {
+    title: 'Orações fundamentais',
+    ids: ['pai-nosso', 'ave-maria', 'gloria-ao-pai', 'simbolo-dos-apostolos'],
+  },
+  {
+    title: 'Orações marianas e devocionais',
+    ids: ['salve-rainha', 'consagracao-nossa-senhora', 'angelus'],
+  },
+  {
+    title: 'Orações aos santos e espirituais',
+    ids: ['santo-anjo', 'vinde-espirito-santo', 'sao-francisco', 'protecao-sao-bento', 'ato-de-contricao'],
+  },
 ];
 
 export function PrayersScreen() {
@@ -75,26 +186,35 @@ export function PrayersScreen() {
         <Text style={[styles.title, { color: colors.text }]}>Orações</Text>
         <Text style={[styles.subtitle, { color: colors.mutedText }]}>Um momento de encontro, confiança e devoção.</Text>
 
-        {PRAYERS.map((prayer) => (
-          <Pressable
-            key={prayer.id}
-            accessibilityRole="button"
-            onPress={() => setSelectedPrayer(prayer)}
-            style={({ pressed }) => [
-              styles.prayerCard,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-              pressed && styles.pressed,
-            ]}
-          >
-            <View style={[styles.prayerIcon, { backgroundColor: colors.background }]}>
-              <Ionicons name={prayer.icon} size={23} color={colors.primary} />
-            </View>
-            <View style={styles.prayerText}>
-              <Text style={[styles.prayerTitle, { color: colors.text }]}>{prayer.title}</Text>
-              <Text style={[styles.prayerDescription, { color: colors.mutedText }]}>{prayer.description}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={19} color={colors.mutedText} />
-          </Pressable>
+        {PRAYER_GROUPS.map((group) => (
+          <View key={group.title} style={styles.group}>
+            <Text style={[styles.groupTitle, { color: colors.mutedText }]}>{group.title}</Text>
+            {group.ids.map((id) => {
+              const prayer = PRAYERS.find((item) => item.id === id);
+              if (!prayer) return null;
+              return (
+                <Pressable
+                  key={prayer.id}
+                  accessibilityRole="button"
+                  onPress={() => setSelectedPrayer(prayer)}
+                  style={({ pressed }) => [
+                    styles.prayerCard,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <View style={[styles.prayerIcon, { backgroundColor: colors.background }]}>
+                    <Ionicons name={prayer.icon} size={23} color={colors.primary} />
+                  </View>
+                  <View style={styles.prayerText}>
+                    <Text style={[styles.prayerTitle, { color: colors.text }]}>{prayer.title}</Text>
+                    <Text style={[styles.prayerDescription, { color: colors.mutedText }]}>{prayer.description}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={19} color={colors.mutedText} />
+                </Pressable>
+              );
+            })}
+          </View>
         ))}
       </ScrollView>
 
@@ -110,8 +230,26 @@ export function PrayersScreen() {
             <View style={[styles.handle, { backgroundColor: colors.border }]} />
             <View style={styles.sheetHeader}>
               <View style={styles.sheetTitleArea}>
-                <Text style={[styles.sheetTitle, { color: colors.text }]}>{selectedPrayer?.title}</Text>
-                <Text style={[styles.sheetSubtitle, { color: colors.mutedText }]}>{selectedPrayer?.description}</Text>
+                <Text
+                  style={[
+                    styles.sheetTitle,
+                    { color: colors.text, fontSize: fontSize + 7, lineHeight: Math.round((fontSize + 7) * 1.2) },
+                  ]}
+                >
+                  {selectedPrayer?.title}
+                </Text>
+                <Text
+                  style={[
+                    styles.sheetSubtitle,
+                    {
+                      color: colors.mutedText,
+                      fontSize: Math.max(fontSize - 3, 12),
+                      lineHeight: Math.round(Math.max(fontSize - 3, 12) * 1.4),
+                    },
+                  ]}
+                >
+                  {selectedPrayer?.description}
+                </Text>
               </View>
               <Pressable accessibilityLabel="Fechar oração" hitSlop={10} onPress={() => setSelectedPrayer(null)}>
                 <Ionicons name="close" size={25} color={colors.mutedText} />
@@ -144,7 +282,14 @@ export function PrayersScreen() {
                   style={[styles.shareButton, { borderColor: colors.border }]}
                 >
                   <Ionicons name="share-social-outline" size={20} color={colors.primary} />
-                  <Text style={[styles.shareText, { color: colors.text }]}>Compartilhar oração</Text>
+                  <Text
+                    style={[
+                      styles.shareText,
+                      { color: colors.text, fontSize: Math.max(fontSize - 2, 13) },
+                    ]}
+                  >
+                    Compartilhar oração
+                  </Text>
                 </Pressable>
               ) : null}
             </ScrollView>
@@ -160,6 +305,8 @@ const styles = StyleSheet.create({
   content: { padding: 18, paddingBottom: 36 },
   title: { fontFamily: 'serif', fontSize: 28, fontWeight: '700' },
   subtitle: { marginTop: 5, marginBottom: 20, fontSize: 13, lineHeight: 19 },
+  group: { marginBottom: 16 },
+  groupTitle: { marginBottom: 9, marginLeft: 3, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
   prayerCard: { flexDirection: 'row', alignItems: 'center', minHeight: 76, marginBottom: 10,
     paddingHorizontal: 14, borderWidth: 1, borderRadius: 14 },
   prayerIcon: { width: 45, height: 45, alignItems: 'center', justifyContent: 'center', marginRight: 12, borderRadius: 13 },

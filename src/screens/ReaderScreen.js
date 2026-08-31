@@ -130,26 +130,6 @@ export function ReaderScreen({ route }) {
     '',
     'Compartilhado pelo Veritas',
   ].filter((line) => line !== undefined && line !== null).join('\n');
-  const prayerShareText = [
-    selectedLiturgy.antiphons?.entrance
-      ? `ANTÍFONA DE ENTRADA\n${selectedLiturgy.antiphons.entrance}`
-      : null,
-    selectedLiturgy.prayers?.collect
-      ? `ORAÇÃO DA COLETA\n${selectedLiturgy.prayers.collect}`
-      : null,
-    selectedLiturgy.prayers?.offerings
-      ? `ORAÇÃO SOBRE AS OFERENDAS\n${selectedLiturgy.prayers.offerings}`
-      : null,
-    selectedLiturgy.antiphons?.communion
-      ? `ANTÍFONA DA COMUNHÃO\n${selectedLiturgy.antiphons.communion}`
-      : null,
-    selectedLiturgy.prayers?.communion
-      ? `ORAÇÃO DEPOIS DA COMUNHÃO\n${selectedLiturgy.prayers.communion}`
-      : null,
-    ...(selectedLiturgy.prayers?.extras ?? []).map(
-      (prayer) => `${prayer.title?.toUpperCase() ?? 'ORAÇÃO'}\n${prayer.text}`,
-    ),
-  ].filter(Boolean).join('\n\n');
   const shareOptions = [
     {
       id: 'first-reading',
@@ -173,9 +153,6 @@ export function ReaderScreen({ route }) {
       label: 'Evangelho',
       text: readingShareBlock('Evangelho', selectedLiturgy.readings.gospel).join('\n').trim(),
     },
-    ...(prayerShareText
-      ? [{ id: 'prayers', label: 'Orações e antífonas', text: prayerShareText }]
-      : []),
   ].filter((option) => option.text);
 
   return (

@@ -155,10 +155,11 @@ export function SettingsScreen() {
         </View>
       </ScrollView>
 
-      <Modal visible={panel !== null} transparent animationType="fade" onRequestClose={closePanel}>
+      <Modal visible={panel !== null} transparent animationType="slide" onRequestClose={closePanel}>
         <View style={styles.modalRoot}>
           <Pressable accessibilityLabel="Fechar painel" style={styles.backdrop} onPress={closePanel} />
           <View style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.handle, { backgroundColor: colors.border }]} />
             <View style={styles.sheetHeader}>
               <Text style={[styles.sheetTitle, { color: colors.text }]}>
                 {panel ? PANEL_TITLES[panel] : ''}
@@ -348,9 +349,10 @@ const styles = StyleSheet.create({
   rowDescription: { fontSize: 12 }, pressed: { opacity: 0.55 },
   offlineNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 2 },
   offlineText: { fontSize: 12, fontWeight: '600' },
-  modalRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalRoot: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.55)' },
-  sheet: { width: '100%', maxWidth: 520, maxHeight: '82%', paddingTop: 18, borderWidth: 1, borderRadius: 22 },
+  sheet: { width: '100%', maxHeight: '88%', paddingTop: 9, borderWidth: 1, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+  handle: { alignSelf: 'center', width: 42, height: 4, marginBottom: 10, borderRadius: 2 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 13 },
   sheetTitle: { flex: 1, fontFamily: 'serif', fontSize: 22, fontWeight: '700' },
   sheetContent: { paddingHorizontal: 20, paddingBottom: 34 },
