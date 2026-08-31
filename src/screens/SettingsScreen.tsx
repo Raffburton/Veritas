@@ -31,7 +31,7 @@ const PANEL_TITLES: Record<Exclude<Panel, null>, string> = {
   notifications: 'Notificações',
   dates: 'Datas importantes',
   devotion: 'Consagração e devoção',
-  about: 'Sobre o Veritas',
+  about: 'Sobre o app e nossa missão',
   technologies: 'Tecnologias',
   support: 'Apoie o desenvolvedor',
 };
@@ -162,8 +162,8 @@ export function SettingsScreen() {
         <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <SettingsRow
             icon="information-circle-outline"
-            title="Sobre o app"
-            description="Propósito, recursos e versão"
+            title="Sobre o app e nossa missão"
+            description="Propósito, compromissos e versão"
             onPress={() => setPanel('about')}
             colors={colors}
           />
@@ -285,6 +285,12 @@ export function SettingsScreen() {
                       title: 'Notas e estudos',
                       description: 'A cada 3 dias, quando houver uma nota salva.',
                     },
+                    {
+                      key: 'importantDates' as const,
+                      icon: 'star-outline' as const,
+                      title: 'Datas importantes',
+                      description: 'Às 8h nas principais celebrações católicas.',
+                    },
                   ]).map((option) => (
                     <View
                       key={option.key}
@@ -370,14 +376,64 @@ export function SettingsScreen() {
               ) : null}
 
               {panel === 'about' ? (
-                <View style={styles.centeredPanel}>
-                  <View style={[styles.brandMark, { borderColor: colors.primary }]}>
-                    <Ionicons name="book-outline" size={31} color={colors.primary} />
+                <View>
+                  <View style={styles.centeredPanel}>
+                    <View style={[styles.brandMark, { borderColor: colors.primary }]}> 
+                      <Ionicons name="book-outline" size={31} color={colors.primary} />
+                    </View>
+                    <Text style={[styles.brand, { color: colors.primary }]}>veritas</Text>
+                    <Text style={[styles.tagline, { color: colors.text }]}>Liturgia · Leitura · Estudo</Text>
+                    <Text style={[styles.paragraph, { color: colors.mutedText }]}>Um aplicativo católico para acompanhar a liturgia, ler a Palavra e registrar reflexões, com foco em simplicidade, acessibilidade e funcionamento offline.</Text>
+                    <Text style={[styles.version, { color: colors.mutedText }]}>Versão 1.0.0</Text>
                   </View>
-                  <Text style={[styles.brand, { color: colors.primary }]}>veritas</Text>
-                  <Text style={[styles.tagline, { color: colors.text }]}>Liturgia · Leitura · Estudo</Text>
-                  <Text style={[styles.paragraph, { color: colors.mutedText }]}>Um aplicativo católico para acompanhar a liturgia, ler a Palavra e registrar reflexões, com foco em simplicidade, acessibilidade e funcionamento offline.</Text>
-                  <Text style={[styles.version, { color: colors.mutedText }]}>Versão 1.0.0</Text>
+
+                  <View style={[styles.aboutDivider, { backgroundColor: colors.border }]} />
+                  <View style={styles.missionHero}>
+                    <View style={[styles.missionIcon, { backgroundColor: colors.background, borderColor: colors.primary }]}> 
+                      <Ionicons name="heart-circle-outline" size={36} color={colors.primary} />
+                    </View>
+                    <Text style={[styles.missionTitle, { color: colors.text }]}>Conhecer a verdade, fortalecer a fé</Text>
+                    <Text style={[styles.missionLead, { color: colors.mutedText }]}>O Veritas nasceu para ser uma base de estudos católicos gratuita, acessível e completa, ajudando cada cristão a se aproximar da Palavra, da liturgia e da vida de oração.</Text>
+                  </View>
+
+                  {[
+                    {
+                      icon: 'gift-outline' as const,
+                      title: 'Gratuito para todos',
+                      text: 'O conhecimento da fé deve estar ao alcance de quem deseja aprender, rezar e crescer espiritualmente.',
+                    },
+                    {
+                      icon: 'book-outline' as const,
+                      title: 'Formação para a caminhada',
+                      text: 'Bíblia, liturgia, notas e orações reunidas para apoiar estudos pessoais, grupos e momentos de reflexão.',
+                    },
+                    {
+                      icon: 'cloud-offline-outline' as const,
+                      title: 'Presente onde for preciso',
+                      text: 'Recursos essenciais permanecem disponíveis offline, com leitura confortável e opções de acessibilidade.',
+                    },
+                    {
+                      icon: 'people-outline' as const,
+                      title: 'A serviço da Igreja',
+                      text: 'Uma ferramenta criada para colaborar com a evangelização, a comunhão e o amor pela Igreja Católica.',
+                    },
+                  ].map((commitment) => (
+                    <View key={commitment.title} style={[styles.missionCommitment, { backgroundColor: colors.background, borderColor: colors.border }]}> 
+                      <View style={[styles.missionCommitmentIcon, { backgroundColor: colors.surface }]}> 
+                        <Ionicons name={commitment.icon} size={22} color={colors.primary} />
+                      </View>
+                      <View style={styles.missionCommitmentText}>
+                        <Text style={[styles.missionCommitmentTitle, { color: colors.text }]}>{commitment.title}</Text>
+                        <Text style={[styles.missionCommitmentBody, { color: colors.mutedText }]}>{commitment.text}</Text>
+                      </View>
+                    </View>
+                  ))}
+
+                  <View style={[styles.missionClosingCard, { borderColor: colors.primary }]}> 
+                    <Ionicons name="sparkles-outline" size={25} color={colors.primary} />
+                    <Text style={[styles.missionClosing, { color: colors.primary }]}>Cada leitura, oração e anotação pode ser um pequeno passo em direção a Deus.</Text>
+                    <Text style={[styles.missionDedication, { color: colors.text }]}>Este projeto é uma contribuição de fé a serviço de Cristo, nosso Rei, e de sua Igreja.</Text>
+                  </View>
                 </View>
               ) : null}
 
@@ -410,12 +466,6 @@ export function SettingsScreen() {
                     <Text style={[styles.apiAddress, { color: colors.mutedText }]}>API: liturgia.up.railway.app/v2</Text>
                   </View>
 
-                  <View style={[styles.missionCard, { borderColor: colors.primary }]}> 
-                    <Ionicons name="heart-circle-outline" size={30} color={colors.primary} />
-                    <Text style={[styles.missionTitle, { color: colors.text }]}>Nossa missão</Text>
-                    <Text style={[styles.missionText, { color: colors.mutedText }]}>O Veritas busca ser uma base de estudos gratuita, acessível e completa para ajudar todos os cristãos que precisam de apoio em sua caminhada de fé, leitura e formação.</Text>
-                    <Text style={[styles.missionClosing, { color: colors.primary }]}>Este app é uma contribuição a serviço de Cristo, nosso Rei, e de sua Igreja.</Text>
-                  </View>
                 </View>
               ) : null}
 
@@ -531,6 +581,7 @@ const styles = StyleSheet.create({
   tagline: { marginTop: 2, fontFamily: 'serif', fontSize: 14, fontWeight: '600' },
   paragraph: { marginTop: 15, fontSize: 14, lineHeight: 21, textAlign: 'center' },
   version: { marginTop: 17, fontSize: 11, fontWeight: '700' },
+  aboutDivider: { height: StyleSheet.hairlineWidth, marginVertical: 22 },
   technologyList: { overflow: 'hidden' },
   technology: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54, borderBottomWidth: StyleSheet.hairlineWidth },
   technologyText: { fontSize: 15, fontWeight: '600' },
@@ -541,10 +592,18 @@ const styles = StyleSheet.create({
   sourceLink: { flexDirection: 'row', alignItems: 'center', gap: 9, minHeight: 48, marginTop: 13, paddingHorizontal: 12, borderWidth: 1, borderRadius: 10 },
   sourceLinkText: { flex: 1, fontSize: 13, fontWeight: '700' },
   apiAddress: { marginTop: 8, fontSize: 10, textAlign: 'center' },
-  missionCard: { alignItems: 'center', marginTop: 14, padding: 17, borderWidth: 1, borderRadius: 13 },
-  missionTitle: { marginTop: 7, fontFamily: 'serif', fontSize: 19, fontWeight: '700' },
-  missionText: { marginTop: 10, fontSize: 13, lineHeight: 20, textAlign: 'center' },
-  missionClosing: { marginTop: 12, fontFamily: 'serif', fontSize: 14, fontWeight: '700', lineHeight: 21, textAlign: 'center' },
+  missionHero: { alignItems: 'center', marginBottom: 19 },
+  missionIcon: { width: 68, height: 68, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 34 },
+  missionTitle: { marginTop: 11, fontFamily: 'serif', fontSize: 21, fontWeight: '700', textAlign: 'center' },
+  missionLead: { marginTop: 9, fontSize: 13, lineHeight: 20, textAlign: 'center' },
+  missionCommitment: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10, padding: 14, borderWidth: 1, borderRadius: 12 },
+  missionCommitmentIcon: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 11 },
+  missionCommitmentText: { flex: 1 },
+  missionCommitmentTitle: { marginBottom: 5, fontFamily: 'serif', fontSize: 16, fontWeight: '700' },
+  missionCommitmentBody: { fontSize: 12, lineHeight: 18 },
+  missionClosingCard: { alignItems: 'center', marginTop: 7, padding: 17, borderWidth: 1, borderRadius: 13 },
+  missionClosing: { marginTop: 8, fontFamily: 'serif', fontSize: 15, fontWeight: '700', lineHeight: 22, textAlign: 'center' },
+  missionDedication: { marginTop: 11, fontFamily: 'serif', fontSize: 13, fontStyle: 'italic', lineHeight: 20, textAlign: 'center' },
   supportTitle: { marginTop: 9, fontFamily: 'serif', fontSize: 20, fontWeight: '700' },
   pixCard: { width: '100%', marginTop: 16, padding: 14, borderWidth: 1, borderRadius: 12 },
   pixHeader: { flexDirection: 'row', alignItems: 'center', gap: 9 },

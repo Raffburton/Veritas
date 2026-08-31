@@ -4,12 +4,13 @@ import { Platform } from 'react-native';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { useLibrary } from './LibraryContext';
+import { getImportantCatholicDates } from '../services/importantDatesService';
 
 const PREFERENCES_KEY = '@veritas:notification-preferences';
 const SCHEDULED_IDS_KEY = '@veritas:scheduled-notifications';
 const CHANNEL_ID = 'veritas-reminders';
 
-export type NotificationPreference = 'everyThreeDays' | 'sundayMass' | 'studyNotes';
+export type NotificationPreference = 'everyThreeDays' | 'sundayMass' | 'studyNotes' | 'importantDates';
 
 type NotificationPreferences = Record<NotificationPreference, boolean>;
 
@@ -20,9 +21,10 @@ type NotificationContextValue = {
 };
 
 const initialPreferences: NotificationPreferences = {
-  everyThreeDays: false,
-  sundayMass: false,
-  studyNotes: false,
+  everyThreeDays: true,
+  sundayMass: true,
+  studyNotes: true,
+  importantDates: true,
 };
 
 const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
@@ -84,18 +86,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const synchronizeNotifications = useCallback(async (current: NotificationPreferences) => {
     await cancelPreviousSchedules();
     if (!Object.values(current).some(Boolean)) return;
-
-    const permission = await Notifications.getPermissionsAsync();
-    if (permission.status !== 'granted') return;
-
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-        name: 'Lembretes do Veritas',
-        description: 'Lembretes de leitura, missa e estudos salvos.',
-        importance: Notifications.AndroidImportance.DEFAULT,
-        vibrationPattern: [0, 250, 180, 250],
-      });
-    }
+    if (!await prepareNotifications()) return;
 
     const scheduled: string[] = [];
     const channelId = Platform.OS === 'android' ? CHANNEL_ID : undefined;
@@ -151,6 +142,34 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           channelId,
         },
       }));
+    }
+
+    if (current.importantDates) {
+      const now = new Date();
+      const years = [now.getFullYear(), now.getFullYear() + 1];
+      const upcomingDates = years.flatMap((year) => getImportantCatholicDates(year))
+        .map((celebration) => {
+          const notificationDate = new Date(celebration.date);
+          notificationDate.setHours(8, 0, 0, 0);
+          return { celebration, notificationDate };
+        })
+        .filter(({ notificationDate }) => notificationDate.getTime() > now.getTime());
+
+      for (const { celebration, notificationDate } of upcomingDates) {
+        scheduled.push(await Notifications.scheduleNotificationAsync({
+          content: {
+            title: celebration.title,
+            body: `${celebration.description} Veja a liturgia e viva esta celebração com o Veritas.`,
+            data: { destination: 'Settings', panel: 'dates', celebrationId: celebration.id },
+            sound: 'default',
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: notificationDate,
+            channelId,
+          },
+        }));
+      }
     }
 
     await AsyncStorage.setItem(SCHEDULED_IDS_KEY, JSON.stringify(scheduled));
