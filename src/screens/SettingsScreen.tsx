@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
-import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import {
   MAX_FONT_SIZE,
@@ -12,10 +12,11 @@ import {
   type AppTheme,
 } from '../context/ThemeContext';
 import { getImportantCatholicDates } from '../services/importantDatesService';
+import { useNotifications, type NotificationPreference } from '../context/NotificationContext';
 
 const PIX_KEY = 'e8d32269-fa6a-4d2f-8817-befb4accd685';
 
-type Panel = 'theme' | 'font' | 'dates' | 'devotion' | 'about' | 'technologies' | 'support' | null;
+type Panel = 'theme' | 'font' | 'notifications' | 'dates' | 'devotion' | 'about' | 'technologies' | 'support' | null;
 
 const THEME_LABELS: Record<AppTheme, string> = {
   'light-white': 'Claro',
@@ -27,6 +28,7 @@ const THEME_LABELS: Record<AppTheme, string> = {
 const PANEL_TITLES: Record<Exclude<Panel, null>, string> = {
   theme: 'Tema da leitura',
   font: 'Tamanho do texto',
+  notifications: 'Notificações',
   dates: 'Datas importantes',
   devotion: 'Consagração e devoção',
   about: 'Sobre o Veritas',
@@ -77,6 +79,7 @@ export function SettingsScreen() {
     increaseFontSize,
     decreaseFontSize,
   } = useTheme();
+  const { preferences: notificationPreferences, setPreference: setNotificationPreference } = useNotifications();
   const [panel, setPanel] = useState<Panel>(null);
   const [pixCopied, setPixCopied] = useState(false);
   const importantDates = getImportantCatholicDates();
@@ -89,6 +92,16 @@ export function SettingsScreen() {
   async function copyPixKey() {
     await Clipboard.setStringAsync(PIX_KEY);
     setPixCopied(true);
+  }
+
+  async function toggleNotification(preference: NotificationPreference, enabled: boolean) {
+    const changed = await setNotificationPreference(preference, enabled);
+    if (!changed) {
+      Alert.alert(
+        'Permissão necessária',
+        'Autorize as notificações do Veritas nas configurações do celular para ativar este lembrete.',
+      );
+    }
   }
 
   return (
@@ -109,6 +122,18 @@ export function SettingsScreen() {
             title="Tamanho do texto"
             description={`${fontSize} pontos`}
             onPress={() => setPanel('font')}
+            colors={colors}
+            last
+          />
+        </View>
+
+        <Text style={[styles.sectionLabel, { color: colors.mutedText }]}>LEMBRETES</Text>
+        <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}> 
+          <SettingsRow
+            icon="notifications-outline"
+            title="Notificações"
+            description="Leitura, missa e estudos"
+            onPress={() => setPanel('notifications')}
             colors={colors}
             last
           />
@@ -235,6 +260,53 @@ export function SettingsScreen() {
                       <Text style={[styles.fontButtonText, { color: colors.primary }]}>A+</Text>
                     </Pressable>
                   </View>
+                </View>
+              ) : null}
+
+              {panel === 'notifications' ? (
+                <View>
+                  <Text style={[styles.notificationIntro, { color: colors.mutedText }]}>Escolha os lembretes que deseja receber. Os horários seguem o fuso do seu celular.</Text>
+                  {([
+                    {
+                      key: 'everyThreeDays' as const,
+                      icon: 'book-outline' as const,
+                      title: 'Leitura a cada 3 dias',
+                      description: 'Um convite para retomar a Bíblia e a liturgia.',
+                    },
+                    {
+                      key: 'sundayMass' as const,
+                      icon: 'calendar-outline' as const,
+                      title: 'Missa aos domingos',
+                      description: 'Todo domingo às 8h, primeiro dia da semana.',
+                    },
+                    {
+                      key: 'studyNotes' as const,
+                      icon: 'document-text-outline' as const,
+                      title: 'Notas e estudos',
+                      description: 'A cada 3 dias, quando houver uma nota salva.',
+                    },
+                  ]).map((option) => (
+                    <View
+                      key={option.key}
+                      style={[styles.notificationRow, { backgroundColor: colors.background, borderColor: colors.border }]}
+                    >
+                      <View style={[styles.notificationIcon, { backgroundColor: colors.surface }]}> 
+                        <Ionicons name={option.icon} size={21} color={colors.primary} />
+                      </View>
+                      <View style={styles.notificationTextArea}>
+                        <Text style={[styles.notificationTitle, { color: colors.text }]}>{option.title}</Text>
+                        <Text style={[styles.notificationDescription, { color: colors.mutedText }]}>{option.description}</Text>
+                      </View>
+                      <Switch
+                        accessibilityLabel={option.title}
+                        value={notificationPreferences[option.key]}
+                        onValueChange={(enabled) => void toggleNotification(option.key, enabled)}
+                        trackColor={{ false: colors.border, true: colors.primary }}
+                        thumbColor={notificationPreferences[option.key] ? colors.surface : colors.mutedText}
+                      />
+                    </View>
+                  ))}
+                  <Text style={[styles.notificationNotice, { color: colors.mutedText }]}>Os lembretes são locais, funcionam sem internet e podem ser desativados a qualquer momento.</Text>
                 </View>
               ) : null}
 
@@ -403,6 +475,13 @@ const styles = StyleSheet.create({
   fontButtonText: { fontSize: 20, fontWeight: '800' },
   fontValueBox: { alignItems: 'center', minWidth: 58 }, fontValue: { fontSize: 24, fontWeight: '800' },
   fontUnit: { marginTop: 1, fontSize: 11 },
+  notificationIntro: { marginBottom: 15, fontSize: 13, lineHeight: 19 },
+  notificationRow: { flexDirection: 'row', alignItems: 'center', gap: 11, minHeight: 78, marginBottom: 10, padding: 12, borderWidth: 1, borderRadius: 12 },
+  notificationIcon: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 11 },
+  notificationTextArea: { flex: 1 },
+  notificationTitle: { marginBottom: 4, fontSize: 14, fontWeight: '700' },
+  notificationDescription: { fontSize: 11, lineHeight: 16 },
+  notificationNotice: { marginTop: 5, fontSize: 10, lineHeight: 15, textAlign: 'center' },
   datesIntro: { marginBottom: 15, fontSize: 13, lineHeight: 19 },
   dateCard: { flexDirection: 'row', alignItems: 'center', gap: 13, marginBottom: 9, padding: 12, borderWidth: 1, borderRadius: 12 },
   dateBadge: { width: 52, height: 56, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 10 },
