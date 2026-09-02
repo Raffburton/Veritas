@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { ThemeProvider } from './src/context/ThemeContext';
 import { LibraryProvider } from './src/context/LibraryContext';
@@ -168,7 +169,7 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <ThemeProvider>
         <LibraryProvider>
           <NotificationProvider>
@@ -200,7 +201,7 @@ export default function App() {
           </View>
         </View>
       </Modal>
-    </>
+    </SafeAreaProvider>
   );
 }
 

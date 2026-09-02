@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '../context/ThemeContext';
 import { BibleScreen } from '../screens/BibleScreen';
@@ -31,6 +32,7 @@ const icons: Record<
 
 export function AppNavigator() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -51,9 +53,9 @@ export function AppNavigator() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.mutedText,
         tabBarStyle: {
-          height: 66,
+          height: 66 + insets.bottom,
           paddingTop: 7,
-          paddingBottom: 8,
+          paddingBottom: 8 + insets.bottom,
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
         },
