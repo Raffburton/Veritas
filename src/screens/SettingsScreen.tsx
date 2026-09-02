@@ -15,8 +15,19 @@ import { getImportantCatholicDates } from '../services/importantDatesService';
 import { useNotifications, type NotificationPreference } from '../context/NotificationContext';
 
 const PIX_KEY = 'e8d32269-fa6a-4d2f-8817-befb4accd685';
+const DIZIFY_WHATSAPP_URL = 'https://wa.me/message/QD7VZTT6QHTWE1';
 
-type Panel = 'theme' | 'font' | 'notifications' | 'dates' | 'devotion' | 'about' | 'technologies' | 'support' | null;
+type ChurchDonation = {
+  id: string;
+  name: string;
+  location: string;
+  pixKey: string;
+};
+
+// Adicione aqui as igrejas e as respectivas chaves Pix confirmadas.
+const CHURCH_DONATIONS: ChurchDonation[] = [];
+
+type Panel = 'theme' | 'font' | 'notifications' | 'dates' | 'devotion' | 'about' | 'technologies' | 'church' | 'support' | null;
 
 const THEME_LABELS: Record<AppTheme, string> = {
   'light-white': 'Claro',
@@ -33,6 +44,7 @@ const PANEL_TITLES: Record<Exclude<Panel, null>, string> = {
   devotion: 'Consagração e devoção',
   about: 'Sobre o app e nossa missão',
   technologies: 'Tecnologias',
+  church: 'Ajude a Igreja',
   support: 'Apoie o desenvolvedor',
 };
 
@@ -86,16 +98,31 @@ export function SettingsScreen() {
   } = useNotifications();
   const [panel, setPanel] = useState<Panel>(null);
   const [pixCopied, setPixCopied] = useState(false);
+  const [copiedChurchId, setCopiedChurchId] = useState<string | null>(null);
   const importantDates = getImportantCatholicDates();
 
   function closePanel() {
     setPanel(null);
     setPixCopied(false);
+    setCopiedChurchId(null);
   }
 
   async function copyPixKey() {
     await Clipboard.setStringAsync(PIX_KEY);
     setPixCopied(true);
+  }
+
+  async function copyChurchPix(church: ChurchDonation) {
+    await Clipboard.setStringAsync(church.pixKey);
+    setCopiedChurchId(church.id);
+  }
+
+  async function openDizify() {
+    try {
+      await Linking.openURL(DIZIFY_WHATSAPP_URL);
+    } catch {
+      Alert.alert('Não foi possível abrir o WhatsApp', 'Verifique se o WhatsApp está instalado e tente novamente.');
+    }
   }
 
   async function toggleNotification(preference: NotificationPreference, enabled: boolean) {
@@ -183,6 +210,13 @@ export function SettingsScreen() {
             title="Tecnologias"
             description="Como o Veritas foi construído"
             onPress={() => setPanel('technologies')}
+            colors={colors}
+          />
+          <SettingsRow
+            icon="business-outline"
+            title="Ajude a Igreja"
+            description="Dízimos e doações"
+            onPress={() => setPanel('church')}
             colors={colors}
           />
           <SettingsRow
@@ -485,6 +519,69 @@ export function SettingsScreen() {
                 </View>
               ) : null}
 
+              {panel === 'church' ? (
+                <View>
+                  <View style={styles.churchHero}>
+                    <View style={[styles.churchIcon, { backgroundColor: colors.background, borderColor: colors.primary }]}>
+                      <Ionicons name="business-outline" size={31} color={colors.primary} />
+                    </View>
+                    <Text style={[styles.churchTitle, { color: colors.text }]}>Contribua com sua comunidade de fé</Text>
+                    <Text style={[styles.churchLead, { color: colors.mutedText }]}>Escolha uma igreja da lista para copiar a chave Pix e enviar seu dízimo ou sua doação.</Text>
+                  </View>
+
+                  {CHURCH_DONATIONS.length > 0 ? CHURCH_DONATIONS.map((church) => {
+                    const copied = copiedChurchId === church.id;
+                    return (
+                      <View key={church.id} style={[styles.churchCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                        <Text style={[styles.churchName, { color: colors.text }]}>{church.name}</Text>
+                        <Text style={[styles.churchLocation, { color: colors.mutedText }]}>{church.location}</Text>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={`Copiar chave Pix de ${church.name}`}
+                          onPress={() => void copyChurchPix(church)}
+                          style={({ pressed }) => [
+                            styles.churchPixButton,
+                            { borderColor: copied ? colors.primary : colors.border },
+                            pressed && styles.pressed,
+                          ]}
+                        >
+                          <View style={styles.churchPixText}>
+                            <Text style={[styles.churchPixLabel, { color: colors.mutedText }]}>Chave Pix</Text>
+                            <Text style={[styles.churchPixKey, { color: colors.text }]}>{church.pixKey}</Text>
+                          </View>
+                          <Ionicons name={copied ? 'checkmark-circle' : 'copy-outline'} size={20} color={colors.primary} />
+                        </Pressable>
+                        {copied ? <Text style={[styles.churchCopied, { color: colors.primary }]}>Chave copiada!</Text> : null}
+                      </View>
+                    );
+                  }) : (
+                    <View style={[styles.churchEmptyCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                      <Ionicons name="list-outline" size={25} color={colors.primary} />
+                      <Text style={[styles.churchEmptyTitle, { color: colors.text }]}>Lista de igrejas em preparação</Text>
+                      <Text style={[styles.churchEmptyText, { color: colors.mutedText }]}>As igrejas e suas chaves Pix confirmadas serão adicionadas aqui.</Text>
+                    </View>
+                  )}
+
+                  <View style={[styles.dizifyCard, { borderColor: colors.primary }]}>
+                    <Ionicons name="logo-whatsapp" size={29} color={colors.primary} />
+                    <Text style={[styles.dizifyTitle, { color: colors.text }]}>Sua igreja não está na lista?</Text>
+                    <Text style={[styles.dizifyText, { color: colors.mutedText }]}>Continue pelo WhatsApp oficial do Dizify para localizar sua igreja e realizar a contribuição.</Text>
+                    <Pressable
+                      accessibilityRole="link"
+                      accessibilityLabel="Continuar a doação no WhatsApp do Dizify"
+                      onPress={() => void openDizify()}
+                      style={({ pressed }) => [styles.dizifyButton, { backgroundColor: colors.primary }, pressed && styles.pressed]}
+                    >
+                      <Ionicons name="logo-whatsapp" size={20} color={colors.surface} />
+                      <Text style={[styles.dizifyButtonText, { color: colors.surface }]}>Continuar no Dizify</Text>
+                      <Ionicons name="open-outline" size={17} color={colors.surface} />
+                    </Pressable>
+                  </View>
+
+                  <Text style={[styles.donationNotice, { color: colors.mutedText }]}>Antes de transferir, confirme o nome do destinatário exibido pelo seu banco.</Text>
+                </View>
+              ) : null}
+
               {panel === 'support' ? (
                 <View style={styles.centeredPanel}>
                   <Ionicons name="heart-outline" size={38} color={colors.primary} />
@@ -620,6 +717,27 @@ const styles = StyleSheet.create({
   missionClosingCard: { alignItems: 'center', marginTop: 7, padding: 17, borderWidth: 1, borderRadius: 13 },
   missionClosing: { marginTop: 8, fontFamily: 'serif', fontSize: 15, fontWeight: '700', lineHeight: 22, textAlign: 'center' },
   missionDedication: { marginTop: 11, fontFamily: 'serif', fontSize: 13, fontStyle: 'italic', lineHeight: 20, textAlign: 'center' },
+  churchHero: { alignItems: 'center', marginBottom: 18 },
+  churchIcon: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 32 },
+  churchTitle: { marginTop: 10, fontFamily: 'serif', fontSize: 20, fontWeight: '700', textAlign: 'center' },
+  churchLead: { marginTop: 8, fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  churchCard: { marginBottom: 10, padding: 14, borderWidth: 1, borderRadius: 12 },
+  churchName: { fontFamily: 'serif', fontSize: 17, fontWeight: '700' },
+  churchLocation: { marginTop: 4, fontSize: 12 },
+  churchPixButton: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12, padding: 11, borderWidth: 1, borderRadius: 9 },
+  churchPixText: { flex: 1 },
+  churchPixLabel: { marginBottom: 3, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+  churchPixKey: { fontSize: 12, lineHeight: 17 },
+  churchCopied: { marginTop: 6, fontSize: 10, fontWeight: '700' },
+  churchEmptyCard: { alignItems: 'center', padding: 17, borderWidth: 1, borderRadius: 12 },
+  churchEmptyTitle: { marginTop: 8, fontSize: 15, fontWeight: '700', textAlign: 'center' },
+  churchEmptyText: { marginTop: 5, fontSize: 12, lineHeight: 18, textAlign: 'center' },
+  dizifyCard: { alignItems: 'center', marginTop: 14, padding: 16, borderWidth: 1, borderRadius: 13 },
+  dizifyTitle: { marginTop: 7, fontFamily: 'serif', fontSize: 18, fontWeight: '700', textAlign: 'center' },
+  dizifyText: { marginTop: 7, fontSize: 12, lineHeight: 18, textAlign: 'center' },
+  dizifyButton: { width: '100%', minHeight: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, marginTop: 13, paddingHorizontal: 14, borderRadius: 10 },
+  dizifyButtonText: { flex: 1, fontSize: 14, fontWeight: '800', textAlign: 'center' },
+  donationNotice: { marginTop: 12, fontSize: 10, lineHeight: 15, textAlign: 'center' },
   supportTitle: { marginTop: 9, fontFamily: 'serif', fontSize: 20, fontWeight: '700' },
   pixCard: { width: '100%', marginTop: 16, padding: 14, borderWidth: 1, borderRadius: 12 },
   pixHeader: { flexDirection: 'row', alignItems: 'center', gap: 9 },
