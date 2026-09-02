@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
@@ -75,10 +75,11 @@ type SettingsRowProps = {
   description: string;
   onPress: () => void;
   colors: ReturnType<typeof useTheme>['colors'];
+  prayerIcon?: boolean;
   last?: boolean;
 };
 
-function SettingsRow({ icon, title, description, onPress, colors, last }: SettingsRowProps) {
+function SettingsRow({ icon, title, description, onPress, colors, prayerIcon, last }: SettingsRowProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -90,7 +91,9 @@ function SettingsRow({ icon, title, description, onPress, colors, last }: Settin
       ]}
     >
       <View style={[styles.rowIcon, { backgroundColor: colors.background }]}>
-        <Ionicons name={icon} size={21} color={colors.primary} />
+        {prayerIcon
+          ? <MaterialCommunityIcons name="hands-pray" size={22} color={colors.primary} />
+          : <Ionicons name={icon} size={21} color={colors.primary} />}
       </View>
       <View style={styles.rowText}>
         <Text style={[styles.rowTitle, { color: colors.text }]}>{title}</Text>
@@ -212,11 +215,12 @@ export function SettingsScreen() {
             colors={colors}
           />
           <SettingsRow
-            icon="heart-circle-outline"
+            icon="hand-left-outline"
             title="Consagração e devoção"
             description="Ato pessoal de entrega e fé"
             onPress={() => setPanel('devotion')}
             colors={colors}
+            prayerIcon
             last
           />
         </View>
@@ -421,7 +425,7 @@ export function SettingsScreen() {
                 <View>
                   <View style={styles.devotionIntro}>
                     <View style={[styles.devotionIcon, { borderColor: colors.primary }]}>
-                      <Ionicons name="heart-outline" size={27} color={colors.primary} />
+                      <MaterialCommunityIcons name="hands-pray" size={29} color={colors.primary} />
                     </View>
                     <Text style={[styles.devotionTitle, { color: colors.text }]}>Ato de Consagração e Devoção Pessoal</Text>
                     <Text style={[styles.devotionLead, { color: colors.mutedText }]}>Por este registro, declaro e renovo minha entrega e devoção:</Text>
