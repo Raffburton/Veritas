@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
+import { SwipeDownDismiss } from '../components/SwipeDownDismiss';
 import {
   MAX_FONT_SIZE,
   MIN_FONT_SIZE,
@@ -311,7 +312,11 @@ export function SettingsScreen() {
       <Modal visible={panel !== null} transparent animationType="slide" onRequestClose={closePanel}>
         <View style={styles.modalRoot}>
           <Pressable accessibilityLabel="Fechar painel" style={styles.backdrop} onPress={closePanel} />
-          <View style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <SwipeDownDismiss
+            key={panel ?? 'closed'}
+            onDismiss={closePanel}
+            style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
             <View style={[styles.handle, { backgroundColor: colors.border }]} />
             <View style={styles.sheetHeader}>
               <Text style={[styles.sheetTitle, { color: colors.text }]}>
@@ -757,7 +762,7 @@ export function SettingsScreen() {
                 </View>
               ) : null}
             </ScrollView>
-          </View>
+          </SwipeDownDismiss>
         </View>
       </Modal>
     </View>

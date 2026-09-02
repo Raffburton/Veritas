@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { AppState, Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 
+import { SwipeDownDismiss } from '../components/SwipeDownDismiss';
 import { useTheme } from '../context/ThemeContext';
 import { toLocalIsoDate } from '../services/liturgicalCalendarService';
 import { fetchVaticanSaint } from '../services/vaticanSaintService';
@@ -369,7 +370,11 @@ export function PrayersScreen() {
       >
         <View style={styles.modalRoot}>
           <Pressable style={styles.backdrop} onPress={() => setSelectedPrayer(null)} />
-          <View style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <SwipeDownDismiss
+            key={selectedPrayer?.id ?? 'closed'}
+            onDismiss={() => setSelectedPrayer(null)}
+            style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
             <View style={[styles.handle, { backgroundColor: colors.border }]} />
             <View style={styles.sheetHeader}>
               <View style={styles.sheetTitleArea}>
@@ -436,7 +441,7 @@ export function PrayersScreen() {
                 </Pressable>
               ) : null}
             </ScrollView>
-          </View>
+          </SwipeDownDismiss>
         </View>
       </Modal>
     </View>
