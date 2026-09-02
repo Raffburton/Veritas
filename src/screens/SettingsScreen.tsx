@@ -79,7 +79,11 @@ export function SettingsScreen() {
     increaseFontSize,
     decreaseFontSize,
   } = useTheme();
-  const { preferences: notificationPreferences, setPreference: setNotificationPreference } = useNotifications();
+  const {
+    preferences: notificationPreferences,
+    setPreference: setNotificationPreference,
+    supported: notificationsSupported,
+  } = useNotifications();
   const [panel, setPanel] = useState<Panel>(null);
   const [pixCopied, setPixCopied] = useState(false);
   const importantDates = getImportantCatholicDates();
@@ -95,6 +99,13 @@ export function SettingsScreen() {
   }
 
   async function toggleNotification(preference: NotificationPreference, enabled: boolean) {
+    if (!notificationsSupported) {
+      Alert.alert(
+        'Indisponível no Expo Go',
+        'Os lembretes funcionam no APK e em development builds. O Expo Go para Android não oferece suporte completo ao módulo de notificações.',
+      );
+      return;
+    }
     const changed = await setNotificationPreference(preference, enabled);
     if (!changed) {
       Alert.alert(
@@ -305,14 +316,19 @@ export function SettingsScreen() {
                       </View>
                       <Switch
                         accessibilityLabel={option.title}
-                        value={notificationPreferences[option.key]}
+                        disabled={!notificationsSupported}
+                        value={notificationsSupported && notificationPreferences[option.key]}
                         onValueChange={(enabled) => void toggleNotification(option.key, enabled)}
                         trackColor={{ false: colors.border, true: colors.primary }}
-                        thumbColor={notificationPreferences[option.key] ? colors.surface : colors.mutedText}
+                        thumbColor={notificationsSupported && notificationPreferences[option.key] ? colors.surface : colors.mutedText}
                       />
                     </View>
                   ))}
-                  <Text style={[styles.notificationNotice, { color: colors.mutedText }]}>Os lembretes são locais, funcionam sem internet e podem ser desativados a qualquer momento.</Text>
+                  <Text style={[styles.notificationNotice, { color: colors.mutedText }]}>
+                    {notificationsSupported
+                      ? 'Os lembretes são locais, funcionam sem internet e podem ser desativados a qualquer momento.'
+                      : 'No Android, teste os lembretes pelo APK ou por um development build; o Expo Go não oferece suporte completo.'}
+                  </Text>
                 </View>
               ) : null}
 

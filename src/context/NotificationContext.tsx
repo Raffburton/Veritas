@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -9,6 +9,29 @@ import { getImportantCatholicDates } from '../services/importantDatesService';
 const PREFERENCES_KEY = '@veritas:notification-preferences';
 const SCHEDULED_IDS_KEY = '@veritas:scheduled-notifications';
 const CHANNEL_ID = 'veritas-reminders';
+const notificationsSupported = !(
+  Platform.OS === 'android' &&
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient
+);
+
+type NotificationsModule = typeof import('expo-notifications');
+let notificationsModulePromise: Promise<NotificationsModule> | null = null;
+
+function loadNotificationsModule(): Promise<NotificationsModule | null> {
+  if (!notificationsSupported) return Promise.resolve(null);
+  notificationsModulePromise ??= import('expo-notifications').then((module) => {
+    module.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+    return module;
+  });
+  return notificationsModulePromise;
+}
 
 export type NotificationPreference = 'everyThreeDays' | 'sundayMass' | 'studyNotes' | 'importantDates';
 
@@ -17,6 +40,7 @@ type NotificationPreferences = Record<NotificationPreference, boolean>;
 type NotificationContextValue = {
   preferences: NotificationPreferences;
   ready: boolean;
+  supported: boolean;
   setPreference: (preference: NotificationPreference, enabled: boolean) => Promise<boolean>;
 };
 
@@ -29,37 +53,28 @@ const initialPreferences: NotificationPreferences = {
 
 const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
-
-async function prepareNotifications() {
+async function prepareNotifications(notifications: NotificationsModule) {
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
+    await notifications.setNotificationChannelAsync(CHANNEL_ID, {
       name: 'Lembretes do Veritas',
       description: 'Lembretes de leitura, missa e estudos salvos.',
-      importance: Notifications.AndroidImportance.DEFAULT,
+      importance: notifications.AndroidImportance.DEFAULT,
       vibrationPattern: [0, 250, 180, 250],
     });
   }
 
-  const current = await Notifications.getPermissionsAsync();
+  const current = await notifications.getPermissionsAsync();
   if (current.status === 'granted') return true;
-  const requested = await Notifications.requestPermissionsAsync();
+  const requested = await notifications.requestPermissionsAsync();
   return requested.status === 'granted';
 }
 
-async function cancelPreviousSchedules() {
+async function cancelPreviousSchedules(notifications: NotificationsModule) {
   try {
     const stored = await AsyncStorage.getItem(SCHEDULED_IDS_KEY);
     const identifiers = stored ? JSON.parse(stored) as string[] : [];
     await Promise.all(identifiers.map((identifier) =>
-      Notifications.cancelScheduledNotificationAsync(identifier).catch(() => undefined),
+      notifications.cancelScheduledNotificationAsync(identifier).catch(() => undefined),
     ));
   } finally {
     await AsyncStorage.removeItem(SCHEDULED_IDS_KEY);
@@ -84,15 +99,18 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const synchronizeNotifications = useCallback(async (current: NotificationPreferences) => {
-    await cancelPreviousSchedules();
+    const notifications = await loadNotificationsModule();
+    if (!notifications) return;
+
+    await cancelPreviousSchedules(notifications);
     if (!Object.values(current).some(Boolean)) return;
-    if (!await prepareNotifications()) return;
+    if (!await prepareNotifications(notifications)) return;
 
     const scheduled: string[] = [];
     const channelId = Platform.OS === 'android' ? CHANNEL_ID : undefined;
 
     if (current.everyThreeDays) {
-      scheduled.push(await Notifications.scheduleNotificationAsync({
+      scheduled.push(await notifications.scheduleNotificationAsync({
         content: {
           title: 'Um momento com a Palavra',
           body: 'Reserve alguns minutos para a liturgia e a leitura da Bíblia no Veritas.',
@@ -100,7 +118,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           sound: 'default',
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          type: notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
           seconds: 3 * 24 * 60 * 60,
           repeats: true,
           channelId,
@@ -109,7 +127,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     if (current.sundayMass) {
-      scheduled.push(await Notifications.scheduleNotificationAsync({
+      scheduled.push(await notifications.scheduleNotificationAsync({
         content: {
           title: 'Domingo, Dia do Senhor',
           body: 'Hoje é dia de missa. Consulte a liturgia e prepare o coração.',
@@ -117,7 +135,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           sound: 'default',
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+          type: notifications.SchedulableTriggerInputTypes.WEEKLY,
           weekday: 1,
           hour: 8,
           minute: 0,
@@ -128,7 +146,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     if (current.studyNotes && notes.length) {
       const latestNote = notes[0];
-      scheduled.push(await Notifications.scheduleNotificationAsync({
+      scheduled.push(await notifications.scheduleNotificationAsync({
         content: {
           title: `Retome seu estudo em ${latestNote.reference.location}`,
           body: 'Você tem uma anotação salva. Abra o Veritas para continuar sua reflexão.',
@@ -136,7 +154,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           sound: 'default',
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          type: notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
           seconds: 3 * 24 * 60 * 60,
           repeats: true,
           channelId,
@@ -156,7 +174,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         .filter(({ notificationDate }) => notificationDate.getTime() > now.getTime());
 
       for (const { celebration, notificationDate } of upcomingDates) {
-        scheduled.push(await Notifications.scheduleNotificationAsync({
+        scheduled.push(await notifications.scheduleNotificationAsync({
           content: {
             title: celebration.title,
             body: `${celebration.description} Veja a liturgia e viva esta celebração com o Veritas.`,
@@ -164,7 +182,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             sound: 'default',
           },
           trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            type: notifications.SchedulableTriggerInputTypes.DATE,
             date: notificationDate,
             channelId,
           },
@@ -182,14 +200,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [libraryReady, preferences, ready, synchronizeNotifications]);
 
   const setPreference = useCallback(async (preference: NotificationPreference, enabled: boolean) => {
-    if (enabled && !await prepareNotifications()) return false;
+    const notifications = await loadNotificationsModule();
+    if (!notifications || (enabled && !await prepareNotifications(notifications))) return false;
     const updated = { ...preferences, [preference]: enabled };
     setPreferences(updated);
     await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify(updated));
     return true;
   }, [preferences]);
 
-  const value = useMemo(() => ({ preferences, ready, setPreference }), [preferences, ready, setPreference]);
+  const value = useMemo(() => ({
+    preferences,
+    ready,
+    supported: notificationsSupported,
+    setPreference,
+  }), [preferences, ready, setPreference]);
   return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
 }
 
