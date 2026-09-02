@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Linking, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
 import { useDailyLiturgy } from '../context/DailyLiturgyContext';
@@ -11,6 +11,7 @@ import {
 } from '../services/liturgicalCalendarService';
 
 const WEEKDAYS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+const HIDDEN_CONTROLS_OFFSET = 162;
 
 function dateFromIso(isoDate) {
   const [year, month, day] = isoDate.split('-').map(Number);
@@ -49,6 +50,35 @@ function ReadingCard({ heading, readings, colors, fontSize }) {
 
 export function ReaderScreen({ route }) {
   const { colors, theme, fontSize, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
+  const [controlsHidden, setControlsHidden] = useState(false);
+  const controlsTranslateX = useRef(new Animated.Value(0)).current;
+  const animateControls = (hidden) => {
+    setControlsHidden(hidden);
+    Animated.spring(controlsTranslateX, {
+      toValue: hidden ? HIDDEN_CONTROLS_OFFSET : 0,
+      useNativeDriver: true,
+      speed: 18,
+      bounciness: 4,
+    }).start();
+  };
+  const controlsPanResponder = useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gesture) => (
+      Math.abs(gesture.dx) > 10
+      && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.3
+      && (controlsHidden ? gesture.dx < 0 : gesture.dx > 0)
+    ),
+    onPanResponderMove: (_, gesture) => {
+      const startOffset = controlsHidden ? HIDDEN_CONTROLS_OFFSET : 0;
+      controlsTranslateX.setValue(Math.max(0, Math.min(HIDDEN_CONTROLS_OFFSET, startOffset + gesture.dx)));
+    },
+    onPanResponderRelease: (_, gesture) => {
+      const shouldHide = controlsHidden
+        ? !(gesture.dx < -36 || gesture.vx < -0.45)
+        : gesture.dx > 36 || gesture.vx > 0.45;
+      animateControls(shouldHide);
+    },
+    onPanResponderTerminate: () => animateControls(controlsHidden),
+  }), [controlsHidden, controlsTranslateX]);
   const {
     getSyncedDay,
     getPapalWords,
@@ -245,7 +275,27 @@ export function ReaderScreen({ route }) {
         </Text>
       </ScrollView>
 
-      <View style={[styles.floatingControls, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <Animated.View
+        {...controlsPanResponder.panHandlers}
+        style={[
+          styles.floatingControls,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+            transform: [{ translateX: controlsTranslateX }],
+          },
+        ]}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={controlsHidden ? 'Mostrar controles de leitura' : 'Ocultar controles de leitura'}
+          accessibilityHint={controlsHidden ? 'Restaura os controles de fonte e tema' : 'Recolhe os controles para a lateral da tela'}
+          hitSlop={8}
+          onPress={() => animateControls(!controlsHidden)}
+          style={styles.controlHandle}
+        >
+          <Text style={[styles.handleText, { color: colors.primary }]}>{controlsHidden ? '‹' : '›'}</Text>
+        </Pressable>
         <Pressable accessibilityLabel="Diminuir tamanho do texto" hitSlop={8} onPress={decreaseFontSize} style={styles.controlButton}>
           <Text style={[styles.controlText, { color: colors.text }]}>A−</Text>
         </Pressable>
@@ -255,7 +305,7 @@ export function ReaderScreen({ route }) {
         <Pressable accessibilityLabel="Aumentar tamanho do texto" hitSlop={8} onPress={increaseFontSize} style={styles.controlButton}>
           <Text style={[styles.controlText, { color: colors.text }]}>A+</Text>
         </Pressable>
-      </View>
+      </Animated.View>
     </View>
   );
 }
@@ -286,6 +336,8 @@ const styles = StyleSheet.create({
   floatingControls: { position: 'absolute', right: 18, bottom: 18, flexDirection: 'row', alignItems: 'center',
     padding: 6, borderWidth: 1, borderRadius: 28, elevation: 6, shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.22, shadowRadius: 6 },
+  controlHandle: { width: 32, height: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 23 },
   controlButton: { width: 46, height: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 23 },
+  handleText: { fontSize: 32, fontWeight: '500', lineHeight: 35 },
   controlText: { fontSize: 17, fontWeight: '700' }, themeControlText: { fontSize: 27, fontWeight: '700' },
 });
