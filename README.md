@@ -61,7 +61,7 @@ O arquivo APK compilado está disponível nos [releases do GitHub](https://githu
 
 #### Como instalar:
 
-1. Baixe o arquivo `Veritas-v1.1.0.apk` do repositório
+1. Baixe o arquivo `Veritas-v1.1.7.apk` do repositório
 2. Ative **"Fontes desconhecidas"** nas configurações de segurança do Android
 3. Abra o arquivo baixado e toque em **"Instalar"**
 4. Pronto! O aplicativo está pronto para uso
@@ -170,7 +170,7 @@ Contribuições são bem-vindas. O projeto pode ser melhorado com:
 - **Projeto ID (EAS):** 45e37a48-c091-4f73-abdb-cfe1e03159e7
 - **Package Android:** com.raffburton.Veritas
 - **Slug:** Veritas
-- **Versão Atual:** 1.1.0
+- **Versão Atual:** 1.1.7
 
 ## Licença
 
