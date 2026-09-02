@@ -180,6 +180,16 @@ const PRAYERS: Prayer[] = [
       'Amém.',
     ],
   },
+  {
+    id: 'oracao-do-deitar',
+    title: 'Oração do Deitar',
+    description: 'Prece popular para confiar a noite a Deus',
+    icon: 'moon-outline',
+    paragraphs: [
+      'Com Deus me deito,\nCom Deus me levanto,\nNa graça de Deus\nE do Divino Espírito Santo.\nNossa Senhora me cubra com vosso manto.',
+      'Amém.',
+    ],
+  },
 ];
 
 const PRAYER_GROUPS = [
@@ -194,6 +204,10 @@ const PRAYER_GROUPS = [
   {
     title: 'Orações aos santos e espirituais',
     ids: ['santo-anjo', 'vinde-espirito-santo', 'sao-francisco', 'protecao-sao-bento', 'ato-de-contricao'],
+  },
+  {
+    title: 'Orações populares',
+    ids: ['oracao-do-deitar'],
   },
 ];
 
