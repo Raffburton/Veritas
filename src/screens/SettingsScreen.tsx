@@ -316,16 +316,20 @@ export function SettingsScreen() {
             key={panel ?? 'closed'}
             onDismiss={closePanel}
             style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            dragArea={(
+              <>
+                <View style={[styles.handle, { backgroundColor: colors.border }]} />
+                <View style={styles.sheetHeader}>
+                  <Text style={[styles.sheetTitle, { color: colors.text }]}>
+                    {panel ? PANEL_TITLES[panel] : ''}
+                  </Text>
+                  <Pressable accessibilityLabel="Fechar" hitSlop={10} onPress={closePanel}>
+                    <Ionicons name="close" size={25} color={colors.mutedText} />
+                  </Pressable>
+                </View>
+              </>
+            )}
           >
-            <View style={[styles.handle, { backgroundColor: colors.border }]} />
-            <View style={styles.sheetHeader}>
-              <Text style={[styles.sheetTitle, { color: colors.text }]}>
-                {panel ? PANEL_TITLES[panel] : ''}
-              </Text>
-              <Pressable accessibilityLabel="Fechar" hitSlop={10} onPress={closePanel}>
-                <Ionicons name="close" size={25} color={colors.mutedText} />
-              </Pressable>
-            </View>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sheetContent}>
               {panel === 'theme' ? (
                 <View style={styles.themeGrid}>

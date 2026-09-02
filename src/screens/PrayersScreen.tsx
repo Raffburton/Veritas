@@ -374,36 +374,39 @@ export function PrayersScreen() {
             key={selectedPrayer?.id ?? 'closed'}
             onDismiss={() => setSelectedPrayer(null)}
             style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            dragArea={(
+              <>
+                <View style={[styles.handle, { backgroundColor: colors.border }]} />
+                <View style={styles.sheetHeader}>
+                  <View style={styles.sheetTitleArea}>
+                    <Text
+                      style={[
+                        styles.sheetTitle,
+                        { color: colors.text, fontSize: fontSize + 7, lineHeight: Math.round((fontSize + 7) * 1.2) },
+                      ]}
+                    >
+                      {selectedPrayer?.title}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.sheetSubtitle,
+                        {
+                          color: colors.mutedText,
+                          fontSize: Math.max(fontSize - 3, 12),
+                          lineHeight: Math.round(Math.max(fontSize - 3, 12) * 1.4),
+                        },
+                      ]}
+                    >
+                      {selectedPrayer?.description}
+                    </Text>
+                  </View>
+                  <Pressable accessibilityLabel="Fechar oração" hitSlop={10} onPress={() => setSelectedPrayer(null)}>
+                    <Ionicons name="close" size={25} color={colors.mutedText} />
+                  </Pressable>
+                </View>
+              </>
+            )}
           >
-            <View style={[styles.handle, { backgroundColor: colors.border }]} />
-            <View style={styles.sheetHeader}>
-              <View style={styles.sheetTitleArea}>
-                <Text
-                  style={[
-                    styles.sheetTitle,
-                    { color: colors.text, fontSize: fontSize + 7, lineHeight: Math.round((fontSize + 7) * 1.2) },
-                  ]}
-                >
-                  {selectedPrayer?.title}
-                </Text>
-                <Text
-                  style={[
-                    styles.sheetSubtitle,
-                    {
-                      color: colors.mutedText,
-                      fontSize: Math.max(fontSize - 3, 12),
-                      lineHeight: Math.round(Math.max(fontSize - 3, 12) * 1.4),
-                    },
-                  ]}
-                >
-                  {selectedPrayer?.description}
-                </Text>
-              </View>
-              <Pressable accessibilityLabel="Fechar oração" hitSlop={10} onPress={() => setSelectedPrayer(null)}>
-                <Ionicons name="close" size={25} color={colors.mutedText} />
-              </Pressable>
-            </View>
-
             <ScrollView contentContainerStyle={styles.prayerContent} showsVerticalScrollIndicator={false}>
               <View style={[styles.largeIcon, { borderColor: colors.primary }]}>
                 {selectedPrayer ? <Ionicons name={selectedPrayer.icon} size={31} color={colors.primary} /> : null}
