@@ -1,11 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 
-import { useDailyLiturgy } from '../context/DailyLiturgyContext';
 import { useTheme } from '../context/ThemeContext';
-import { getLiturgicalDay, toLocalIsoDate } from '../services/liturgicalCalendarService';
-import { getLiturgyByDate } from '../services/liturgyService';
+import { toLocalIsoDate } from '../services/liturgicalCalendarService';
+import { fetchVaticanSaint } from '../services/vaticanSaintService';
 
 const VATICAN_SAINT_OF_THE_DAY_URL = 'https://www.vaticannews.va/pt/santo-do-dia.html';
 
@@ -177,12 +176,30 @@ const PRAYER_GROUPS = [
 
 export function PrayersScreen() {
   const { colors, fontSize } = useTheme();
-  const { getSyncedDay } = useDailyLiturgy();
   const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
   const today = toLocalIsoDate(new Date());
-  const saintOfTheDay = getLiturgyByDate(today)?.saintOfTheDay;
-  const liturgicalCelebration = getSyncedDay(today)?.celebration ?? getLiturgicalDay(today)?.celebration;
-  const saintName = saintOfTheDay?.name ?? liturgicalCelebration ?? 'Consulte o santo celebrado hoje';
+  const [saintName, setSaintName] = useState('Carregando santo do dia…');
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    let active = true;
+
+    void fetchVaticanSaint(today, controller.signal)
+      .then((saint) => {
+        if (active) setSaintName(saint?.name ?? 'Santo do dia indisponível');
+      })
+      .catch(() => {
+        if (active) setSaintName('Santo do dia indisponível');
+      })
+      .finally(() => clearTimeout(timeout));
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [today]);
 
   function sharePrayer(prayer: Prayer) {
     return Share.share({
