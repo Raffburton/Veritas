@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
 import { useTheme } from '../context/ThemeContext';
 import type { RootTabParamList } from '../navigation/AppNavigator';
 import { bibleBooks, getBibleBook, getBibleChapter } from '../services/bibleService';
+import type { BibleVerse } from '../services/bibleService';
 import type { ContentReference } from '../types/library';
 
 type Filter = 'Todos' | 'Antigo Testamento' | 'Novo Testamento';
@@ -89,6 +90,12 @@ function versesLabel(numbers: number[]) {
   return consecutive && sorted.length > 1 ? `${sorted[0]}-${sorted.at(-1)}` : sorted.join('.');
 }
 
+function verseViewPosition(index: number, verseCount: number) {
+  if (index < 3) return 0;
+  if (index >= verseCount - 3) return 1;
+  return 0.5;
+}
+
 export function BibleScreen({ route, navigation }: Props) {
   const { colors, fontSize } = useTheme();
   const [query, setQuery] = useState('');
@@ -96,13 +103,22 @@ export function BibleScreen({ route, navigation }: Props) {
   const [bookIndex, setBookIndex] = useState<number | null>(route.params?.bookIndex ?? null);
   const [chapterNumber, setChapterNumber] = useState(route.params?.chapter ?? 1);
   const [selectedVerses, setSelectedVerses] = useState<number[]>(route.params?.verses ?? []);
+  const [verseToReveal, setVerseToReveal] = useState(route.params?.verses?.[0] ?? null);
+  const verseListRef = useRef<FlatList<BibleVerse>>(null);
+  const scrollRetryCount = useRef(0);
+  const scrollRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (route.params?.bookIndex === undefined) return;
     setBookIndex(route.params.bookIndex);
     setChapterNumber(route.params.chapter ?? 1);
     setSelectedVerses(route.params.verses ?? []);
+    setVerseToReveal(route.params.verses?.[0] ?? null);
   }, [route.params]);
+
+  useEffect(() => () => {
+    if (scrollRetryTimer.current) clearTimeout(scrollRetryTimer.current);
+  }, []);
 
   useEffect(
     () =>
@@ -110,6 +126,7 @@ export function BibleScreen({ route, navigation }: Props) {
         setBookIndex(null);
         setChapterNumber(1);
         setSelectedVerses([]);
+        setVerseToReveal(null);
       }),
     [navigation],
   );
@@ -120,6 +137,7 @@ export function BibleScreen({ route, navigation }: Props) {
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
         setBookIndex(null);
         setSelectedVerses([]);
+        setVerseToReveal(null);
         return true;
       });
       return () => subscription.remove();
@@ -140,10 +158,27 @@ export function BibleScreen({ route, navigation }: Props) {
   const summary = bookIndex === null ? null : bibleBooks[bookIndex];
   const chapter = bookIndex === null ? null : getBibleChapter(bookIndex, chapterNumber);
 
+  useEffect(() => {
+    if (!chapter || verseToReveal === null) return undefined;
+    const verseIndex = chapter.versiculos.findIndex(({ numero }) => numero === verseToReveal);
+    if (verseIndex < 0) return undefined;
+
+    scrollRetryCount.current = 0;
+    const frame = requestAnimationFrame(() => {
+      verseListRef.current?.scrollToIndex({
+        index: verseIndex,
+        animated: false,
+        viewPosition: verseViewPosition(verseIndex, chapter.versiculos.length),
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [chapter, verseToReveal]);
+
   function openBook(index: number, chapter = 1, verses: number[] = []) {
     setBookIndex(index);
     setChapterNumber(chapter);
     setSelectedVerses(verses);
+    setVerseToReveal(verses[0] ?? null);
     setQuery('');
   }
 
@@ -155,6 +190,7 @@ export function BibleScreen({ route, navigation }: Props) {
   function chooseChapter(number: number) {
     setChapterNumber(number);
     setSelectedVerses([]);
+    setVerseToReveal(null);
   }
 
   function toggleVerse(number: number) {
@@ -193,12 +229,32 @@ export function BibleScreen({ route, navigation }: Props) {
     return (
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <FlatList
+          ref={verseListRef}
           data={chapter.versiculos}
           keyExtractor={(verse) => String(verse.numero)}
           contentContainerStyle={styles.readerContent}
+          onScrollToIndexFailed={({ index, averageItemLength }) => {
+            if (scrollRetryCount.current >= 3) return;
+            scrollRetryCount.current += 1;
+            verseListRef.current?.scrollToOffset({
+              offset: Math.max(0, averageItemLength * index),
+              animated: false,
+            });
+            if (scrollRetryTimer.current) clearTimeout(scrollRetryTimer.current);
+            scrollRetryTimer.current = setTimeout(() => {
+              verseListRef.current?.scrollToIndex({
+                index,
+                animated: false,
+                viewPosition: verseViewPosition(index, chapter.versiculos.length),
+              });
+            }, 100);
+          }}
           ListHeaderComponent={
             <>
-              <Pressable accessibilityRole="button" onPress={() => setBookIndex(null)} style={styles.backButton}>
+              <Pressable accessibilityRole="button" onPress={() => {
+                setBookIndex(null);
+                setVerseToReveal(null);
+              }} style={styles.backButton}>
                 <Ionicons name="chevron-back" size={20} color={colors.primary} />
                 <Text style={[styles.backText, { color: colors.primary }]}>Todos os livros</Text>
               </Pressable>
