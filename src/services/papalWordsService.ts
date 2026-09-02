@@ -2,15 +2,18 @@ export type PapalWords = {
   date: string;
   text: string;
   sourceUrl: string;
+  fetchedAt: string;
 };
 
 type VaticanSpeechPayload = {
-  speech?: Array<{
-    hfwText?: string;
-  }>;
+  speech?: Array<Record<string, unknown> & { hfwText?: string }>;
 };
 
 const VATICAN_NEWS_BASE_URL = 'https://www.vaticannews.va/pt/palavra-do-dia';
+export const PAPAL_WORDS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const EXCLUDED_CONTENT_FIELD = /(?:audio|evangel|lettura|reading|salmo|vangelo)/i;
+const PAPAL_CONTENT_FIELD = /(?:comment|hfw|holy.?father|homil|meditat|papa|pope|pontif|reflection|rifless)/i;
+const PAPAL_ATTRIBUTION = /\b(?:angelus|audi[eê]ncia|homilia|papa|santo padre)\b/i;
 
 const HTML_ENTITIES: Record<string, string> = {
   amp: '&', apos: "'", gt: '>', lt: '<', nbsp: ' ', quot: '"',
@@ -56,6 +59,43 @@ export function papalWordsHtmlToText(html: string): string {
     .trim();
 }
 
+export function extractPapalWordsHtml(payload: VaticanSpeechPayload): string | null {
+  const speeches = Array.isArray(payload.speech) ? payload.speech : [];
+
+  for (const speech of speeches) {
+    const primary = typeof speech.hfwText === 'string' ? speech.hfwText.trim() : '';
+    if (primary) return primary;
+  }
+
+  for (const speech of speeches) {
+    const candidates = Object.entries(speech).filter(
+      ([key, value]) => typeof value === 'string' && !EXCLUDED_CONTENT_FIELD.test(key),
+    ) as Array<[string, string]>;
+
+    const namedCandidate = candidates.find(
+      ([key, value]) => PAPAL_CONTENT_FIELD.test(key) && value.trim(),
+    );
+    if (namedCandidate) return namedCandidate[1].trim();
+
+    const attributedCandidate = candidates.find(([, value]) => {
+      const text = papalWordsHtmlToText(value);
+      return text.length >= 80 && PAPAL_ATTRIBUTION.test(text);
+    });
+    if (attributedCandidate) return attributedCandidate[1].trim();
+  }
+
+  return null;
+}
+
+export function isPapalWordsCacheFresh(
+  papalWords: PapalWords | undefined,
+  now = Date.now(),
+): boolean {
+  if (!papalWords?.fetchedAt) return false;
+  const fetchedAt = Date.parse(papalWords.fetchedAt);
+  return Number.isFinite(fetchedAt) && now - fetchedAt < PAPAL_WORDS_CACHE_TTL_MS;
+}
+
 export function getPapalWordsSourceUrl(date: string): string {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error('Data inválida para Palavras do Papa.');
@@ -72,9 +112,9 @@ export async function fetchPapalWords(date: string, signal?: AbortSignal): Promi
   if (!response.ok) throw new Error(`Vatican News respondeu com status ${response.status}.`);
 
   const payload = (await response.json()) as VaticanSpeechPayload;
-  const html = payload.speech?.[0]?.hfwText?.trim();
+  const html = extractPapalWordsHtml(payload);
   if (!html) return null;
 
   const text = papalWordsHtmlToText(html);
-  return text ? { date, text, sourceUrl } : null;
+  return text ? { date, text, sourceUrl, fetchedAt: new Date().toISOString() } : null;
 }

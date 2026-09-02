@@ -4,7 +4,11 @@ import { AppState } from 'react-native';
 
 import type { CalendarReading, LiturgicalCalendarDay } from '../services/liturgicalCalendarService';
 import { toLocalIsoDate } from '../services/liturgicalCalendarService';
-import { fetchPapalWords, type PapalWords } from '../services/papalWordsService';
+import {
+  fetchPapalWords,
+  isPapalWordsCacheFresh,
+  type PapalWords,
+} from '../services/papalWordsService';
 
 const API_URL = 'https://liturgia.up.railway.app/v2/';
 const CACHE_KEY = '@veritas:daily-liturgy-cache-v2';
@@ -152,7 +156,12 @@ export function DailyLiturgyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadPapalWords = useCallback(async (date: string) => {
-    if (!cacheLoaded || cache.papalWords[date] || papalWordsRequests.current.has(date)) return;
+    const cachedPapalWords = cache.papalWords[date];
+    if (
+      !cacheLoaded ||
+      isPapalWordsCacheFresh(cachedPapalWords) ||
+      papalWordsRequests.current.has(date)
+    ) return;
 
     papalWordsRequests.current.add(date);
     setPapalWordsLoading((current) => ({ ...current, [date]: true }));
@@ -167,11 +176,13 @@ export function DailyLiturgyProvider({ children }: { children: ReactNode }) {
           ...current,
           papalWords: { ...current.papalWords, [date]: papalWords },
         }));
-      } else {
+      } else if (!cachedPapalWords) {
         setPapalWordsUnavailable((current) => ({ ...current, [date]: true }));
       }
     } catch {
-      setPapalWordsUnavailable((current) => ({ ...current, [date]: true }));
+      if (!cachedPapalWords) {
+        setPapalWordsUnavailable((current) => ({ ...current, [date]: true }));
+      }
     } finally {
       clearTimeout(timeout);
       papalWordsRequests.current.delete(date);
