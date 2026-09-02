@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import {
@@ -19,13 +19,35 @@ const DIZIFY_WHATSAPP_URL = 'https://wa.me/message/QD7VZTT6QHTWE1';
 
 type ChurchDonation = {
   id: string;
+  section: string;
   name: string;
   location: string;
   pixKey: string;
 };
 
-// Adicione aqui as igrejas e as respectivas chaves Pix confirmadas.
-const CHURCH_DONATIONS: ChurchDonation[] = [];
+const CHURCH_DONATIONS: ChurchDonation[] = [
+  {
+    id: 'nossa-senhora-menina-vila-maria-botucatu',
+    section: 'Destaques de Botucatu e Região',
+    name: 'Paróquia Nossa Senhora Menina',
+    location: 'Vila Maria · Botucatu',
+    pixKey: '45.424.520/0038-51',
+  },
+  {
+    id: 'arquidiocese-sant-ana-botucatu',
+    section: 'Destaques de Botucatu e Região',
+    name: "Arquidiocese de Sant'Ana de Botucatu",
+    location: 'Botucatu/SP',
+    pixKey: '45.424.520/0001-60',
+  },
+  {
+    id: 'arquidiocese-campinas',
+    section: 'Destaques de Campinas e Região',
+    name: 'Arquidiocese de Campinas',
+    location: 'Campinas/SP',
+    pixKey: '44.588.960/0001-90',
+  },
+];
 
 type Panel = 'theme' | 'font' | 'notifications' | 'dates' | 'devotion' | 'about' | 'technologies' | 'church' | 'support' | null;
 
@@ -99,12 +121,14 @@ export function SettingsScreen() {
   const [panel, setPanel] = useState<Panel>(null);
   const [pixCopied, setPixCopied] = useState(false);
   const [copiedChurchId, setCopiedChurchId] = useState<string | null>(null);
+  const [expandedChurchId, setExpandedChurchId] = useState<string | null>(null);
   const importantDates = getImportantCatholicDates();
 
   function closePanel() {
     setPanel(null);
     setPixCopied(false);
     setCopiedChurchId(null);
+    setExpandedChurchId(null);
   }
 
   async function copyPixKey() {
@@ -529,30 +553,58 @@ export function SettingsScreen() {
                     <Text style={[styles.churchLead, { color: colors.mutedText }]}>Escolha uma igreja da lista para copiar a chave Pix e enviar seu dízimo ou sua doação.</Text>
                   </View>
 
-                  {CHURCH_DONATIONS.length > 0 ? CHURCH_DONATIONS.map((church) => {
+                  {CHURCH_DONATIONS.length > 0 ? CHURCH_DONATIONS.map((church, index) => {
                     const copied = copiedChurchId === church.id;
+                    const expanded = expandedChurchId === church.id;
+                    const startsSection = index === 0 || CHURCH_DONATIONS[index - 1].section !== church.section;
                     return (
-                      <View key={church.id} style={[styles.churchCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                        <Text style={[styles.churchName, { color: colors.text }]}>{church.name}</Text>
-                        <Text style={[styles.churchLocation, { color: colors.mutedText }]}>{church.location}</Text>
+                      <Fragment key={church.id}>
+                        {startsSection ? (
+                          <Text style={[styles.churchSectionLabel, { color: colors.mutedText }]}>{church.section.toUpperCase()}</Text>
+                        ) : null}
+                        <View style={[styles.churchCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
                         <Pressable
                           accessibilityRole="button"
-                          accessibilityLabel={`Copiar chave Pix de ${church.name}`}
-                          onPress={() => void copyChurchPix(church)}
-                          style={({ pressed }) => [
-                            styles.churchPixButton,
-                            { borderColor: copied ? colors.primary : colors.border },
-                            pressed && styles.pressed,
-                          ]}
+                          accessibilityState={{ expanded }}
+                          accessibilityLabel={`${expanded ? 'Recolher' : 'Expandir'} dados de ${church.name}`}
+                          onPress={() => {
+                            setExpandedChurchId(expanded ? null : church.id);
+                            setCopiedChurchId(null);
+                          }}
+                          style={({ pressed }) => [styles.churchAccordionHeader, pressed && styles.pressed]}
                         >
-                          <View style={styles.churchPixText}>
-                            <Text style={[styles.churchPixLabel, { color: colors.mutedText }]}>Chave Pix</Text>
-                            <Text style={[styles.churchPixKey, { color: colors.text }]}>{church.pixKey}</Text>
+                          <View style={styles.churchAccordionText}>
+                            <Text style={[styles.churchName, { color: colors.text }]}>{church.name}</Text>
+                            <Text style={[styles.churchLocation, { color: colors.mutedText }]}>{church.location}</Text>
                           </View>
-                          <Ionicons name={copied ? 'checkmark-circle' : 'copy-outline'} size={20} color={colors.primary} />
+                          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.primary} />
                         </Pressable>
-                        {copied ? <Text style={[styles.churchCopied, { color: colors.primary }]}>Chave copiada!</Text> : null}
-                      </View>
+
+                        {expanded ? (
+                          <View style={[styles.churchAccordionContent, { borderTopColor: colors.border }]}>
+                            <Pressable
+                              accessibilityRole="button"
+                              accessibilityLabel={`Copiar chave Pix de ${church.name}`}
+                              onPress={() => void copyChurchPix(church)}
+                              style={({ pressed }) => [
+                                styles.churchPixButton,
+                                { borderColor: copied ? colors.primary : colors.border },
+                                pressed && styles.pressed,
+                              ]}
+                            >
+                              <View style={styles.churchPixText}>
+                                <Text style={[styles.churchPixLabel, { color: colors.mutedText }]}>Chave Pix</Text>
+                                <Text style={[styles.churchPixKey, { color: colors.text }]}>{church.pixKey}</Text>
+                              </View>
+                              <Ionicons name={copied ? 'checkmark-circle' : 'copy-outline'} size={20} color={colors.primary} />
+                            </Pressable>
+                            <Text style={[styles.churchPixHint, { color: copied ? colors.primary : colors.mutedText }]}>
+                              {copied ? 'Chave copiada!' : 'Toque para copiar.'}
+                            </Text>
+                          </View>
+                        ) : null}
+                        </View>
+                      </Fragment>
                     );
                   }) : (
                     <View style={[styles.churchEmptyCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
@@ -721,14 +773,18 @@ const styles = StyleSheet.create({
   churchIcon: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 32 },
   churchTitle: { marginTop: 10, fontFamily: 'serif', fontSize: 20, fontWeight: '700', textAlign: 'center' },
   churchLead: { marginTop: 8, fontSize: 13, lineHeight: 19, textAlign: 'center' },
-  churchCard: { marginBottom: 10, padding: 14, borderWidth: 1, borderRadius: 12 },
+  churchSectionLabel: { marginBottom: 8, marginLeft: 4, fontSize: 10, fontWeight: '800', letterSpacing: 0.9 },
+  churchCard: { marginBottom: 9, overflow: 'hidden', borderWidth: 1, borderRadius: 12 },
+  churchAccordionHeader: { minHeight: 66, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 10 },
+  churchAccordionText: { flex: 1 },
+  churchAccordionContent: { paddingHorizontal: 14, paddingBottom: 13, borderTopWidth: StyleSheet.hairlineWidth },
   churchName: { fontFamily: 'serif', fontSize: 17, fontWeight: '700' },
   churchLocation: { marginTop: 4, fontSize: 12 },
   churchPixButton: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12, padding: 11, borderWidth: 1, borderRadius: 9 },
   churchPixText: { flex: 1 },
   churchPixLabel: { marginBottom: 3, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
   churchPixKey: { fontSize: 12, lineHeight: 17 },
-  churchCopied: { marginTop: 6, fontSize: 10, fontWeight: '700' },
+  churchPixHint: { marginTop: 6, fontSize: 10, fontWeight: '700' },
   churchEmptyCard: { alignItems: 'center', padding: 17, borderWidth: 1, borderRadius: 12 },
   churchEmptyTitle: { marginTop: 8, fontSize: 15, fontWeight: '700', textAlign: 'center' },
   churchEmptyText: { marginTop: 5, fontSize: 12, lineHeight: 18, textAlign: 'center' },
