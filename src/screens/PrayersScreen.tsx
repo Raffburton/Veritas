@@ -1,8 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 
+import { useDailyLiturgy } from '../context/DailyLiturgyContext';
 import { useTheme } from '../context/ThemeContext';
+import { getLiturgicalDay, toLocalIsoDate } from '../services/liturgicalCalendarService';
+import { getLiturgyByDate } from '../services/liturgyService';
+
+const VATICAN_SAINT_OF_THE_DAY_URL = 'https://www.vaticannews.va/pt/santo-do-dia.html';
 
 type Prayer = {
   id: string;
@@ -172,7 +177,12 @@ const PRAYER_GROUPS = [
 
 export function PrayersScreen() {
   const { colors, fontSize } = useTheme();
+  const { getSyncedDay } = useDailyLiturgy();
   const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
+  const today = toLocalIsoDate(new Date());
+  const saintOfTheDay = getLiturgyByDate(today)?.saintOfTheDay;
+  const liturgicalCelebration = getSyncedDay(today)?.celebration ?? getLiturgicalDay(today)?.celebration;
+  const saintName = saintOfTheDay?.name ?? liturgicalCelebration ?? 'Consulte o santo celebrado hoje';
 
   function sharePrayer(prayer: Prayer) {
     return Share.share({
@@ -185,6 +195,26 @@ export function PrayersScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={[styles.title, { color: colors.text }]}>Orações</Text>
         <Text style={[styles.subtitle, { color: colors.mutedText }]}>Um momento de encontro, confiança e devoção.</Text>
+
+        <View style={[styles.saintCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.saintIcon, { backgroundColor: colors.background }]}>
+            <Ionicons name="calendar-outline" size={25} color={colors.primary} />
+          </View>
+          <View style={styles.saintContent}>
+            <Text style={[styles.saintLabel, { color: colors.mutedText }]}>Santo do dia</Text>
+            <Text style={[styles.saintName, { color: colors.text }]}>{saintName}</Text>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="Saiba mais sobre o santo do dia no Vatican News"
+              hitSlop={8}
+              onPress={() => void Linking.openURL(VATICAN_SAINT_OF_THE_DAY_URL)}
+              style={({ pressed }) => [styles.saintLink, pressed && styles.pressed]}
+            >
+              <Text style={[styles.saintLinkText, { color: colors.primary }]}>saiba mais</Text>
+              <Ionicons name="open-outline" size={14} color={colors.primary} />
+            </Pressable>
+          </View>
+        </View>
 
         {PRAYER_GROUPS.map((group) => (
           <View key={group.title} style={styles.group}>
@@ -305,6 +335,13 @@ const styles = StyleSheet.create({
   content: { padding: 18, paddingBottom: 36 },
   title: { fontFamily: 'serif', fontSize: 28, fontWeight: '700' },
   subtitle: { marginTop: 5, marginBottom: 20, fontSize: 13, lineHeight: 19 },
+  saintCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 22, padding: 16, borderWidth: 1, borderRadius: 16 },
+  saintIcon: { width: 49, height: 49, alignItems: 'center', justifyContent: 'center', marginRight: 14, borderRadius: 15 },
+  saintContent: { flex: 1 },
+  saintLabel: { marginBottom: 4, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+  saintName: { fontFamily: 'serif', fontSize: 18, fontWeight: '700', lineHeight: 23 },
+  saintLink: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 4, marginTop: 8 },
+  saintLinkText: { fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' },
   group: { marginBottom: 16 },
   groupTitle: { marginBottom: 9, marginLeft: 3, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
   prayerCard: { flexDirection: 'row', alignItems: 'center', minHeight: 76, marginBottom: 10,
