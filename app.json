@@ -15,7 +15,12 @@
         "foregroundImage": "./Icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.raffburton.Veritas"
+      "package": "com.raffburton.Veritas",
+      "permissions": [
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE",
+        "REQUEST_INSTALL_PACKAGES"
+      ]
     },
     "web": {
       "favicon": "./Icon.png"
