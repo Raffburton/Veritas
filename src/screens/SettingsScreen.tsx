@@ -42,6 +42,41 @@ const CHURCH_DONATIONS: ChurchDonation[] = [
     location: 'Botucatu/SP',
     pixKey: '45.424.520/0001-60',
   },
+  {
+    id: 'catedral-metropolitana-nossa-senhora-conceicao-campinas',
+    section: 'Cidades do Interior de São Paulo',
+    name: 'Catedral Metropolitana Nossa Senhora da Conceição',
+    location: 'Campinas/SP',
+    pixKey: '44.588.960/0027-29',
+  },
+  {
+    id: 'catedral-metropolitana-sao-sebastiao-ribeirao-preto',
+    section: 'Cidades do Interior de São Paulo',
+    name: 'Catedral Metropolitana de São Sebastião',
+    location: 'Ribeirão Preto/SP',
+    pixKey: '45.231.560/0001-95',
+  },
+  {
+    id: 'paroquia-matriz-sao-pedro-apostolo-tupa',
+    section: 'Cidades do Interior de São Paulo',
+    name: 'Paróquia Matriz de São Pedro Apóstolo',
+    location: 'Tupã/SP',
+    pixKey: '52.059.797/0009-53',
+  },
+  {
+    id: 'catedral-metropolitana-sao-paulo-se',
+    section: 'Principais Catedrais e Santuários Nacionais',
+    name: 'Catedral Metropolitana de São Paulo',
+    location: 'Sé · São Paulo/SP',
+    pixKey: '63.089.825/0001-44',
+  },
+  {
+    id: 'santuario-nacional-nossa-senhora-aparecida',
+    section: 'Principais Catedrais e Santuários Nacionais',
+    name: 'Santuário Nacional de Nossa Senhora Aparecida',
+    location: 'Aparecida/SP',
+    pixKey: '08.704.413/0037-70',
+  },
 ];
 
 const CHURCH_SECTIONS = [...new Set(CHURCH_DONATIONS.map((church) => church.section))].map((title) => ({
