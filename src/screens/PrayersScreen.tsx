@@ -1,12 +1,35 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { AppState, Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../context/ThemeContext';
 import { toLocalIsoDate } from '../services/liturgicalCalendarService';
 import { fetchVaticanSaint } from '../services/vaticanSaintService';
 
 const VATICAN_SAINT_OF_THE_DAY_URL = 'https://www.vaticannews.va/pt/santo-do-dia.html';
+const VATICAN_SAINT_CACHE_KEY = '@veritas:vatican-saint-of-the-day-v1';
+
+type VaticanSaintCache = {
+  date: string;
+  name: string;
+  updatedAt?: string;
+};
+
+function formatSaintUpdate(cache: VaticanSaintCache): string {
+  if (cache.updatedAt) {
+    const updatedAt = new Date(cache.updatedAt);
+    if (!Number.isNaN(updatedAt.getTime())) {
+      return `${updatedAt.toLocaleDateString('pt-BR')} às ${updatedAt.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`;
+    }
+  }
+
+  const [year, month, day] = cache.date.split('-');
+  return `${day}/${month}/${year}`;
+}
 
 type Prayer = {
   id: string;
@@ -177,26 +200,82 @@ const PRAYER_GROUPS = [
 export function PrayersScreen() {
   const { colors, fontSize } = useTheme();
   const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
-  const today = toLocalIsoDate(new Date());
+  const [today, setToday] = useState(() => toLocalIsoDate(new Date()));
   const [saintName, setSaintName] = useState('Carregando santo do dia…');
+  const [saintLastUpdated, setSaintLastUpdated] = useState<string | null>(null);
+
+  useEffect(() => {
+    function updateCurrentDate() {
+      setToday(toLocalIsoDate(new Date()));
+    }
+
+    const now = new Date();
+    const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const midnightTimer = setTimeout(updateCurrentDate, nextDay.getTime() - now.getTime() + 1000);
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') updateCurrentDate();
+    });
+
+    return () => {
+      clearTimeout(midnightTimer);
+      appStateSubscription.remove();
+    };
+  }, [today]);
 
   useEffect(() => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
     let active = true;
 
-    void fetchVaticanSaint(today, controller.signal)
-      .then((saint) => {
-        if (active) setSaintName(saint?.name ?? 'Santo do dia indisponível');
-      })
-      .catch(() => {
-        if (active) setSaintName('Santo do dia indisponível');
-      })
-      .finally(() => clearTimeout(timeout));
+    async function loadSaintOfTheDay() {
+      let cachedSaint: VaticanSaintCache | null = null;
+
+      try {
+        const stored = await AsyncStorage.getItem(VATICAN_SAINT_CACHE_KEY);
+        if (stored) {
+          const cached = JSON.parse(stored) as Partial<VaticanSaintCache>;
+          if (cached.date && cached.name) {
+            cachedSaint = { date: cached.date, name: cached.name, updatedAt: cached.updatedAt };
+            if (active) {
+              setSaintName(cachedSaint.name);
+              setSaintLastUpdated(formatSaintUpdate(cachedSaint));
+            }
+
+            if (cachedSaint.date === today) return;
+          }
+        }
+      } catch {
+        // Um cache inválido não deve impedir a consulta à fonte oficial.
+      }
+
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      try {
+        const saint = await fetchVaticanSaint(today, controller.signal);
+        if (!saint) {
+          if (active && !cachedSaint) setSaintName('Santo do dia indisponível');
+          return;
+        }
+
+        const updatedAt = new Date().toISOString();
+        const updatedCache = { date: today, name: saint.name, updatedAt } satisfies VaticanSaintCache;
+        await AsyncStorage.setItem(
+          VATICAN_SAINT_CACHE_KEY,
+          JSON.stringify(updatedCache),
+        );
+        if (active) {
+          setSaintName(saint.name);
+          setSaintLastUpdated(formatSaintUpdate(updatedCache));
+        }
+      } catch {
+        if (active && !cachedSaint) setSaintName('Santo do dia indisponível');
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    void loadSaintOfTheDay();
 
     return () => {
       active = false;
-      clearTimeout(timeout);
       controller.abort();
     };
   }, [today]);
@@ -220,6 +299,9 @@ export function PrayersScreen() {
           <View style={styles.saintContent}>
             <Text style={[styles.saintLabel, { color: colors.mutedText }]}>Santo do dia</Text>
             <Text style={[styles.saintName, { color: colors.text }]}>{saintName}</Text>
+            {saintLastUpdated ? (
+              <Text style={[styles.saintUpdatedAt, { color: colors.mutedText }]}>Última atualização: {saintLastUpdated}</Text>
+            ) : null}
             <Pressable
               accessibilityRole="link"
               accessibilityLabel="Saiba mais sobre o santo do dia no Vatican News"
@@ -357,6 +439,7 @@ const styles = StyleSheet.create({
   saintContent: { flex: 1 },
   saintLabel: { marginBottom: 4, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
   saintName: { fontFamily: 'serif', fontSize: 18, fontWeight: '700', lineHeight: 23 },
+  saintUpdatedAt: { marginTop: 5, fontSize: 10, lineHeight: 14 },
   saintLink: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 4, marginTop: 8 },
   saintLinkText: { fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' },
   group: { marginBottom: 16 },
