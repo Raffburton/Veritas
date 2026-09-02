@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
-import { Alert, FlatList, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { useLibrary } from '../context/LibraryContext';
 import { useTheme } from '../context/ThemeContext';
@@ -10,6 +10,10 @@ import type { RootTabParamList } from '../navigation/AppNavigator';
 import type { ContentReference, LinkedNote, SavedReading } from '../types/library';
 
 type Section = 'notes' | 'saved';
+type DeleteTarget = {
+  item: LinkedNote | SavedReading;
+  section: Section;
+};
 
 function sourceLabel(reference: ContentReference) {
   return reference.source === 'bible' ? 'BÍBLIA' : 'LITURGIA';
@@ -33,6 +37,7 @@ export function NotesScreen() {
   const { colors, fontSize } = useTheme();
   const { notes, savedReadings, ready, deleteNote, removeSavedReading } = useLibrary();
   const [section, setSection] = useState<Section>('notes');
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const data = section === 'notes' ? notes : savedReadings;
 
   function openReference(reference: ContentReference) {
@@ -50,18 +55,14 @@ export function NotesScreen() {
   }
 
   function confirmDelete(item: LinkedNote | SavedReading) {
-    Alert.alert(
-      section === 'notes' ? 'Excluir nota' : 'Remover de ler depois',
-      'Esta ação não poderá ser desfeita.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: () => void (section === 'notes' ? deleteNote(item.id) : removeSavedReading(item.id)),
-        },
-      ],
-    );
+    setDeleteTarget({ item, section });
+  }
+
+  function deleteSelectedItem() {
+    if (!deleteTarget) return;
+    const { item, section: targetSection } = deleteTarget;
+    setDeleteTarget(null);
+    void (targetSection === 'notes' ? deleteNote(item.id) : removeSavedReading(item.id));
   }
 
   return (
@@ -149,6 +150,55 @@ export function NotesScreen() {
           );
         }}
       />
+
+      <Modal
+        visible={deleteTarget !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteTarget(null)}
+      >
+        <View style={styles.deleteModalRoot}>
+          <Pressable
+            accessibilityLabel="Cancelar exclusão"
+            style={styles.deleteBackdrop}
+            onPress={() => setDeleteTarget(null)}
+          />
+          <View
+            accessibilityViewIsModal
+            style={[styles.deleteDialog, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
+            <View style={styles.deleteIcon}>
+              <Ionicons name="trash-outline" size={29} color="#C95B5B" />
+            </View>
+            <Text style={[styles.deleteTitle, { color: colors.text }]}>
+              {deleteTarget?.section === 'notes' ? 'Excluir nota?' : 'Remover de ler depois?'}
+            </Text>
+            <Text style={[styles.deleteMessage, { color: colors.mutedText }]}>Esta ação não poderá ser desfeita.</Text>
+            <View style={styles.deleteActions}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setDeleteTarget(null)}
+                style={({ pressed }) => [
+                  styles.deleteButton,
+                  styles.cancelButton,
+                  { borderColor: colors.border },
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancelar</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={deleteSelectedItem}
+                style={({ pressed }) => [styles.deleteButton, styles.confirmDeleteButton, pressed && styles.pressed]}
+              >
+                <Ionicons name="trash-outline" size={17} color="#FFFFFF" />
+                <Text style={styles.confirmDeleteText}>Excluir</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -174,4 +224,19 @@ const styles = StyleSheet.create({
   cardActions: { flexDirection: 'row', alignItems: 'center', marginTop: 14 },
   linkedLabel: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5 },
   linkedText: { fontSize: 10, fontWeight: '700' },
+  deleteModalRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  deleteBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.72)' },
+  deleteDialog: { width: '100%', maxWidth: 360, alignItems: 'center', padding: 24, borderWidth: 1, borderRadius: 20 },
+  deleteIcon: { width: 60, height: 60, alignItems: 'center', justifyContent: 'center', marginBottom: 17,
+    backgroundColor: 'rgba(201,91,91,0.13)', borderRadius: 30 },
+  deleteTitle: { fontFamily: 'serif', fontSize: 22, fontWeight: '700', textAlign: 'center' },
+  deleteMessage: { marginTop: 8, fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  deleteActions: { flexDirection: 'row', gap: 10, width: '100%', marginTop: 24 },
+  deleteButton: { flex: 1, minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 7, borderRadius: 12 },
+  cancelButton: { borderWidth: 1 },
+  cancelButtonText: { fontSize: 13, fontWeight: '800' },
+  confirmDeleteButton: { backgroundColor: '#B84D4D' },
+  confirmDeleteText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
+  pressed: { opacity: 0.62 },
 });

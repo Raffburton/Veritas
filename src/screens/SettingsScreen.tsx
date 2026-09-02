@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
@@ -16,6 +17,7 @@ import { useNotifications, type NotificationPreference } from '../context/Notifi
 
 const PIX_KEY = 'e8d32269-fa6a-4d2f-8817-befb4accd685';
 const DIZIFY_WHATSAPP_URL = 'https://wa.me/message/QD7VZTT6QHTWE1';
+const APP_VERSION = Constants.expoConfig?.version ?? '1.1.0';
 
 type ChurchDonation = {
   id: string;
@@ -470,7 +472,7 @@ export function SettingsScreen() {
                     <Text style={[styles.brand, { color: colors.primary }]}>veritas</Text>
                     <Text style={[styles.tagline, { color: colors.text }]}>Liturgia · Leitura · Estudo</Text>
                     <Text style={[styles.paragraph, { color: colors.mutedText }]}>Um aplicativo católico para acompanhar a liturgia, ler a Palavra e registrar reflexões, com foco em simplicidade, acessibilidade e funcionamento offline.</Text>
-                    <Text style={[styles.version, { color: colors.mutedText }]}>Versão 1.0.0</Text>
+                    <Text style={[styles.version, { color: colors.mutedText }]}>Versão {APP_VERSION}</Text>
                   </View>
                 </View>
               ) : null}
