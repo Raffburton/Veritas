@@ -4,6 +4,7 @@ import { AppState } from 'react-native';
 
 import type { CalendarReading, LiturgicalCalendarDay } from '../services/liturgicalCalendarService';
 import { toLocalIsoDate } from '../services/liturgicalCalendarService';
+import { fetchPapalWords, type PapalWords } from '../services/papalWordsService';
 
 const API_URL = 'https://liturgia.up.railway.app/v2/';
 const CACHE_KEY = '@veritas:daily-liturgy-cache-v2';
@@ -40,12 +41,17 @@ type ApiLiturgy = {
 
 type CacheState = {
   days: Record<string, LiturgicalCalendarDay>;
+  papalWords: Record<string, PapalWords>;
   lastUpdated: string | null;
 };
 
 type DailyLiturgyContextValue = CacheState & {
   syncing: boolean;
+  papalWordsLoading: Record<string, boolean>;
+  papalWordsUnavailable: Record<string, boolean>;
   getSyncedDay: (date: string) => LiturgicalCalendarDay | null;
+  getPapalWords: (date: string) => PapalWords | null;
+  loadPapalWords: (date: string) => Promise<void>;
   syncCurrentWeek: () => Promise<void>;
 };
 
@@ -110,10 +116,13 @@ function datesForCurrentWeek() {
 }
 
 export function DailyLiturgyProvider({ children }: { children: ReactNode }) {
-  const [cache, setCache] = useState<CacheState>({ days: {}, lastUpdated: null });
+  const [cache, setCache] = useState<CacheState>({ days: {}, papalWords: {}, lastUpdated: null });
   const [cacheLoaded, setCacheLoaded] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [papalWordsLoading, setPapalWordsLoading] = useState<Record<string, boolean>>({});
+  const [papalWordsUnavailable, setPapalWordsUnavailable] = useState<Record<string, boolean>>({});
   const initialized = useRef(false);
+  const papalWordsRequests = useRef(new Set<string>());
 
   const syncCurrentWeek = useCallback(async () => {
     setSyncing(true);
@@ -132,6 +141,7 @@ export function DailyLiturgyProvider({ children }: { children: ReactNode }) {
             ...current.days,
             ...Object.fromEntries(receivedDays.map((day) => [day.date, day])),
           },
+          papalWords: current.papalWords,
           lastUpdated: new Date().toISOString(),
         }));
       }
@@ -141,13 +151,48 @@ export function DailyLiturgyProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const loadPapalWords = useCallback(async (date: string) => {
+    if (!cacheLoaded || cache.papalWords[date] || papalWordsRequests.current.has(date)) return;
+
+    papalWordsRequests.current.add(date);
+    setPapalWordsLoading((current) => ({ ...current, [date]: true }));
+    setPapalWordsUnavailable((current) => ({ ...current, [date]: false }));
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const papalWords = await fetchPapalWords(date, controller.signal);
+      if (papalWords) {
+        setCache((current) => ({
+          ...current,
+          papalWords: { ...current.papalWords, [date]: papalWords },
+        }));
+      } else {
+        setPapalWordsUnavailable((current) => ({ ...current, [date]: true }));
+      }
+    } catch {
+      setPapalWordsUnavailable((current) => ({ ...current, [date]: true }));
+    } finally {
+      clearTimeout(timeout);
+      papalWordsRequests.current.delete(date);
+      setPapalWordsLoading((current) => ({ ...current, [date]: false }));
+    }
+  }, [cache.papalWords, cacheLoaded]);
+
   useEffect(() => {
     async function initialize() {
       try {
         const stored = await AsyncStorage.getItem(CACHE_KEY);
-        if (stored) setCache(JSON.parse(stored) as CacheState);
+        if (stored) {
+          const parsed = JSON.parse(stored) as Partial<CacheState>;
+          setCache({
+            days: parsed.days ?? {},
+            papalWords: parsed.papalWords ?? {},
+            lastUpdated: parsed.lastUpdated ?? null,
+          });
+        }
       } catch {
-        setCache({ days: {}, lastUpdated: null });
+        setCache({ days: {}, papalWords: {}, lastUpdated: null });
       } finally {
         setCacheLoaded(true);
         initialized.current = true;
@@ -172,9 +217,13 @@ export function DailyLiturgyProvider({ children }: { children: ReactNode }) {
   const value = useMemo<DailyLiturgyContextValue>(() => ({
     ...cache,
     syncing,
+    papalWordsLoading,
+    papalWordsUnavailable,
     getSyncedDay: (date) => cache.days[date] ?? null,
+    getPapalWords: (date) => cache.papalWords[date] ?? null,
+    loadPapalWords,
     syncCurrentWeek,
-  }), [cache, syncing, syncCurrentWeek]);
+  }), [cache, loadPapalWords, papalWordsLoading, papalWordsUnavailable, syncing, syncCurrentWeek]);
 
   return <DailyLiturgyContext.Provider value={value}>{children}</DailyLiturgyContext.Provider>;
 }

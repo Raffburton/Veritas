@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
 import { useDailyLiturgy } from '../context/DailyLiturgyContext';
@@ -49,7 +49,15 @@ function ReadingCard({ heading, readings, colors, fontSize }) {
 
 export function ReaderScreen({ route }) {
   const { colors, theme, fontSize, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
-  const { getSyncedDay, syncing, lastUpdated } = useDailyLiturgy();
+  const {
+    getSyncedDay,
+    getPapalWords,
+    loadPapalWords,
+    papalWordsLoading,
+    papalWordsUnavailable,
+    syncing,
+    lastUpdated,
+  } = useDailyLiturgy();
   const requestedDate = route?.params?.date;
   const weekDates = useMemo(() => {
     const now = requestedDate ? dateFromIso(requestedDate) : new Date();
@@ -70,7 +78,11 @@ export function ReaderScreen({ route }) {
   useEffect(() => {
     if (requestedDate) setSelectedDate(requestedDate);
   }, [requestedDate]);
+  useEffect(() => {
+    void loadPapalWords(selectedDate);
+  }, [loadPapalWords, selectedDate]);
   const selectedLiturgy = week.find((day) => day.date === selectedDate);
+  const selectedPapalWords = getPapalWords(selectedDate);
   const metadata = getLiturgicalCalendarMetadata();
 
   if (!selectedLiturgy) {
@@ -200,6 +212,32 @@ export function ReaderScreen({ route }) {
         <ReadingCard heading="Salmo responsorial" readings={selectedLiturgy.readings.psalm} colors={colors} fontSize={fontSize} />
         <ReadingCard heading="Segunda leitura" readings={selectedLiturgy.readings.secondReading} colors={colors} fontSize={fontSize} />
         <ReadingCard heading="Evangelho" readings={selectedLiturgy.readings.gospel} colors={colors} fontSize={fontSize} />
+        <View style={[styles.card, styles.papalWordsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionHeading, { color: colors.primary, fontSize: Math.max(fontSize - 2, 12) }]}>Palavras do Papa</Text>
+          {selectedPapalWords ? (
+            <>
+              <Text style={[styles.papalWordsText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.62) }]}>
+                {selectedPapalWords.text}
+              </Text>
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel="Abrir fonte no Vatican News"
+                onPress={() => void Linking.openURL(selectedPapalWords.sourceUrl).catch(() => undefined)}
+                style={styles.sourceLink}
+              >
+                <Text style={[styles.sourceLinkText, { color: colors.primary }]}>Fonte: Vatican News</Text>
+              </Pressable>
+            </>
+          ) : (
+            <Text style={[styles.papalWordsStatus, { color: colors.mutedText }]}>
+              {papalWordsLoading[selectedDate]
+                ? 'Carregando reflexão...'
+                : papalWordsUnavailable[selectedDate]
+                  ? 'Reflexão papal indisponível para esta data.'
+                  : 'Preparando reflexão...'}
+            </Text>
+          )}
+        </View>
         <ReadingCard heading="Leituras adicionais" readings={selectedLiturgy.readings.extras} colors={colors} fontSize={fontSize} />
 
         <Text style={[styles.sourceNotice, { color: colors.mutedText }]}>
@@ -236,6 +274,11 @@ const styles = StyleSheet.create({
   reference: { marginBottom: 5, fontWeight: '700' }, readingTitle: { lineHeight: 22 },
   response: { marginTop: 9, fontFamily: 'serif', fontStyle: 'italic' },
   readingText: { marginTop: 13, fontFamily: 'serif' },
+  papalWordsCard: { borderLeftWidth: 4 },
+  papalWordsText: { fontFamily: 'serif' },
+  papalWordsStatus: { fontSize: 13, fontStyle: 'italic' },
+  sourceLink: { alignSelf: 'flex-start', marginTop: 14, paddingVertical: 4 },
+  sourceLinkText: { fontSize: 11, fontWeight: '800' },
   additionalReading: { marginTop: 14, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth },
   sourceNotice: { marginTop: 4, fontSize: 10, lineHeight: 15, textAlign: 'center' },
   syncStatus: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -9, marginBottom: 15 },
