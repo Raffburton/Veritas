@@ -32,6 +32,8 @@ Além disso, o Veritas procura unir tecnologia e espiritualidade de maneira leve
 - Acompanhamento completo da celebração do dia
 - Calendário litúrgico 2026 integrado
 - Leituras e reflexões estruturadas
+- Controles rápidos para ajustar o tamanho do texto e o tema durante a leitura
+- Módulo de leitura retrátil por gesto ou toque, reduzindo interferências sobre o conteúdo
 
 ### ✓ Bíblia Sagrada
 - Leitura completa da Bíblia
@@ -50,14 +52,23 @@ Além disso, o Veritas procura unir tecnologia e espiritualidade de maneira leve
 ### ✓ Recursos Avançados
 - Funcionamento offline com dados sincronizados
 - Notificações de lembretes para leitura e oração
-- Suporte a múltiplos temas (light/dark)
+- Suporte a múltiplos temas de leitura, incluindo modos claros e escuros
+- Ajuste global do tamanho do texto
 - Sincronização do calendário litúrgico
+
+### ✓ Ajude a Igreja
+- Lista de paróquias, catedrais e santuários organizada por região e categoria
+- Chaves Pix copiáveis diretamente pelo aplicativo
+- Atalho para localizar outras igrejas pelo WhatsApp oficial do Dizify
+- Aviso para conferência do destinatário antes da transferência
 
 ## Download e Instalação
 
 ### 📥 APK Disponível no GitHub
 
 O arquivo APK compilado está disponível nos [releases do GitHub](https://github.com/raffburton/Veritas/releases).
+
+Consulte também as [notas da versão 1.1.7](./RELEASE_NOTES.md) para conhecer as novidades e melhorias mais recentes.
 
 #### Como instalar:
 
@@ -90,6 +101,7 @@ O arquivo APK compilado está disponível nos [releases do GitHub](https://githu
 src/
 ├── screens/              - Telas principais do aplicativo
 │   ├── HomeScreen.tsx        - Tela inicial
+│   ├── ReaderScreen.js        - Liturgia diária e controles de leitura
 │   ├── BibleScreen.tsx        - Leitor da Bíblia
 │   ├── PrayersScreen.tsx      - Orações e devoções
 │   ├── NotesScreen.tsx        - Anotações pessoais
