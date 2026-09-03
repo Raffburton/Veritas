@@ -10,8 +10,10 @@ import { LibraryProvider } from './src/context/LibraryContext';
 import { DailyLiturgyProvider } from './src/context/DailyLiturgyContext';
 import { NotificationProvider } from './src/context/NotificationContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { checkForUpdates, downloadLatestApk, getGitHubReleasesUrl, installDownloadedApk } from './src/services/updateChecker';
 
+const WELCOME_COMPLETED_KEY = '@veritas:welcome-completed';
 const REMIND_LATER_KEY = 'veritas:update:remindLater';
 const REMINDER_TTL_MS = 24 * 60 * 60 * 1000;
 const REMINDER_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -30,6 +32,16 @@ function ThemedStatusBar() {
   );
 }
 
+function AppLoadingScreen() {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.appLoading, { backgroundColor: colors.background }]}>
+      <ActivityIndicator size="large" color={colors.primary} />
+    </View>
+  );
+}
+
 function hasValidReminder(reminder: { version?: string; remindedAt?: number } | null, latestVersion: string): boolean {
   if (!reminder?.version || typeof reminder.remindedAt !== 'number') {
     return false;
@@ -44,11 +56,35 @@ function hasValidReminder(reminder: { version?: string; remindedAt?: number } | 
 }
 
 export default function App() {
+  const [hasCompletedWelcome, setHasCompletedWelcome] = useState<boolean | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadMessage, setDownloadMessage] = useState('');
 
   useEffect(() => {
+    let mounted = true;
+
+    void AsyncStorage.getItem(WELCOME_COMPLETED_KEY)
+      .then((value) => {
+        if (mounted) setHasCompletedWelcome(value === 'true');
+      })
+      .catch(() => {
+        if (mounted) setHasCompletedWelcome(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const completeWelcome = () => {
+    setHasCompletedWelcome(true);
+    void AsyncStorage.setItem(WELCOME_COMPLETED_KEY, 'true').catch(() => undefined);
+  };
+
+  useEffect(() => {
+    if (hasCompletedWelcome !== true) return undefined;
+
     let mounted = true;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -179,21 +215,27 @@ export default function App() {
         clearTimeout(retryTimer);
       }
     };
-  }, []);
+  }, [hasCompletedWelcome]);
 
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <ThemeProvider>
-        <LibraryProvider>
-          <NotificationProvider>
-            <DailyLiturgyProvider>
-              <NavigationContainer>
-                <ThemedStatusBar />
-                <AppNavigator />
-              </NavigationContainer>
-            </DailyLiturgyProvider>
-          </NotificationProvider>
-        </LibraryProvider>
+        <ThemedStatusBar />
+        {hasCompletedWelcome === null ? (
+          <AppLoadingScreen />
+        ) : hasCompletedWelcome ? (
+          <LibraryProvider>
+            <NotificationProvider>
+              <DailyLiturgyProvider>
+                <NavigationContainer>
+                  <AppNavigator />
+                </NavigationContainer>
+              </DailyLiturgyProvider>
+            </NotificationProvider>
+          </LibraryProvider>
+        ) : (
+          <WelcomeScreen onContinue={completeWelcome} />
+        )}
       </ThemeProvider>
 
       <Modal transparent visible={isDownloading} animationType="fade" onRequestClose={() => undefined}>
@@ -219,6 +261,11 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  appLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
