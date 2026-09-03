@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -60,13 +60,16 @@ export function AppNavigator() {
           borderTopColor: colors.border,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-        tabBarIcon: ({ color, focused, size }) => (
-          <Ionicons
-            name={focused ? icons[route.name].active : icons[route.name].inactive}
-            color={color}
-            size={size}
-          />
-        ),
+        tabBarIcon: ({ color, focused, size }) =>
+          route.name === 'Prayers' ? (
+            <MaterialCommunityIcons name="hands-pray" color={color} size={size} />
+          ) : (
+            <Ionicons
+              name={focused ? icons[route.name].active : icons[route.name].inactive}
+              color={color}
+              size={size}
+            />
+          ),
       })}
     >
       <Tab.Screen name="Liturgy" component={ReaderScreen} options={{ title: 'Liturgia' }} />

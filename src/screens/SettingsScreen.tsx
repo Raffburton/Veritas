@@ -18,7 +18,7 @@ import { useNotifications, type NotificationPreference } from '../context/Notifi
 
 const PIX_KEY = 'e8d32269-fa6a-4d2f-8817-befb4accd685';
 const DIZIFY_WHATSAPP_URL = 'https://wa.me/message/QD7VZTT6QHTWE1';
-const APP_VERSION = Constants.expoConfig?.version ?? '1.1.7';
+const APP_VERSION = Constants.expoConfig?.version ?? '1.1.8';
 
 type ChurchDonation = {
   id: string;

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Veritas",
     "slug": "Veritas",
-    "version": "1.1.7",
+    "version": "1.1.8",
     "orientation": "portrait",
     "icon": "./Icon.png",
     "userInterfaceStyle": "light",
