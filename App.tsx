@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
-import { ThemeProvider } from './src/context/ThemeContext';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LibraryProvider } from './src/context/LibraryContext';
 import { DailyLiturgyProvider } from './src/context/DailyLiturgyContext';
 import { NotificationProvider } from './src/context/NotificationContext';
@@ -16,6 +16,19 @@ const REMIND_LATER_KEY = 'veritas:update:remindLater';
 const REMINDER_TTL_MS = 24 * 60 * 60 * 1000;
 const REMINDER_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const AUTO_RETRY_DELAY_MS = 30000;
+
+function ThemedStatusBar() {
+  const { colors, theme } = useTheme();
+  const isDarkTheme = theme.startsWith('dark');
+
+  return (
+    <StatusBar
+      animated
+      backgroundColor={colors.background}
+      style={isDarkTheme ? 'light' : 'dark'}
+    />
+  );
+}
 
 function hasValidReminder(reminder: { version?: string; remindedAt?: number } | null, latestVersion: string): boolean {
   if (!reminder?.version || typeof reminder.remindedAt !== 'number') {
@@ -175,7 +188,7 @@ export default function App() {
           <NotificationProvider>
             <DailyLiturgyProvider>
               <NavigationContainer>
-                <StatusBar style="auto" />
+                <ThemedStatusBar />
                 <AppNavigator />
               </NavigationContainer>
             </DailyLiturgyProvider>

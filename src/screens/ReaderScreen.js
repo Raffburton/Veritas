@@ -50,8 +50,8 @@ function ReadingCard({ heading, readings, colors, fontSize }) {
 
 export function ReaderScreen({ route }) {
   const { colors, theme, fontSize, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
-  const [controlsHidden, setControlsHidden] = useState(false);
-  const controlsTranslateX = useRef(new Animated.Value(0)).current;
+  const [controlsHidden, setControlsHidden] = useState(true);
+  const controlsTranslateX = useRef(new Animated.Value(HIDDEN_CONTROLS_OFFSET)).current;
   const animateControls = (hidden) => {
     setControlsHidden(hidden);
     Animated.spring(controlsTranslateX, {
