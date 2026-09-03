@@ -23,7 +23,7 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         <View style={[styles.mark, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Image
             accessibilityLabel="Ícone do Veritas"
-            source={require('../../Icon.png')}
+            source={require('../../ver.png')}
             style={styles.appIcon}
           />
         </View>
