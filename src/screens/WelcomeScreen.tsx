@@ -31,7 +31,7 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         <Text style={[styles.eyebrow, { color: colors.mutedText }]}>BEM-VINDO AO</Text>
         <Text style={[styles.brand, { color: colors.primary }]}>veritas</Text>
         <Text style={[styles.introduction, { color: colors.text }]}>
-          Palavra, oração e reflexão para acompanhar sua caminhada de fé todos os dias.
+          Palavra, liturgia, oração e reflexão para acompanhar sua caminhada de fé todos os dias.
         </Text>
 
         <View style={styles.features}>

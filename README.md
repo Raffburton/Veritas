@@ -26,13 +26,6 @@ Este projeto tem finalidade educativa, espiritual e pessoal. Ele busca ser uma f
 
 Além disso, o Veritas procura unir tecnologia e espiritualidade de maneira leve e prática, tornando a leitura do evangelho, a oração e a reflexão mais acessíveis no dia a dia.
 
-## Melhorias recentes
-
-- Melhorias de desempenho para uma experiência mais rápida e fluida
-- Interface e experiência de uso (UI/UX) refinadas
-- Navegação mais simples e intuitiva entre as telas
-- Novo ícone minimalista e clean, alinhado à identidade do projeto
-- Nova tela de boas-vindas para apresentar os principais recursos do aplicativo
 
 ## Funcionalidades
 
@@ -76,11 +69,11 @@ Além disso, o Veritas procura unir tecnologia e espiritualidade de maneira leve
 
 O arquivo APK compilado está disponível nos [releases do GitHub](https://github.com/raffburton/Veritas/releases).
 
-Consulte também as [notas da versão 1.1.7](./RELEASE_NOTES.md) para conhecer as novidades e melhorias mais recentes.
+Consulte também as [notas da versão 1.1.8](./RELEASE_NOTES.md) para conhecer as novidades e melhorias mais recentes.
 
 #### Como instalar:
 
-1. Baixe o arquivo `Veritas-v1.1.7.apk` do repositório
+1. Baixe o arquivo `Veritas-v1.1.8.apk` do repositório
 2. Ative **"Fontes desconhecidas"** nas configurações de segurança do Android
 3. Abra o arquivo baixado e toque em **"Instalar"**
 4. Pronto! O aplicativo está pronto para uso
