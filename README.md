@@ -26,6 +26,14 @@ Este projeto tem finalidade educativa, espiritual e pessoal. Ele busca ser uma f
 
 Além disso, o Veritas procura unir tecnologia e espiritualidade de maneira leve e prática, tornando a leitura do evangelho, a oração e a reflexão mais acessíveis no dia a dia.
 
+## Melhorias recentes
+
+- Melhorias de desempenho para uma experiência mais rápida e fluida
+- Interface e experiência de uso (UI/UX) refinadas
+- Navegação mais simples e intuitiva entre as telas
+- Novo ícone minimalista e clean, alinhado à identidade do projeto
+- Nova tela de boas-vindas para apresentar os principais recursos do aplicativo
+
 ## Funcionalidades
 
 ### ✓ Liturgia Diária
@@ -105,6 +113,7 @@ src/
 │   ├── BibleScreen.tsx        - Leitor da Bíblia
 │   ├── PrayersScreen.tsx      - Orações e devoções
 │   ├── NotesScreen.tsx        - Anotações pessoais
+│   ├── WelcomeScreen.tsx      - Apresentação inicial do aplicativo
 │   └── SettingsScreen.tsx     - Configurações
 ├── components/           - Componentes reutilizáveis
 ├── context/              - Contextos React
@@ -182,7 +191,7 @@ Contribuições são bem-vindas. O projeto pode ser melhorado com:
 - **Projeto ID (EAS):** 45e37a48-c091-4f73-abdb-cfe1e03159e7
 - **Package Android:** com.raffburton.Veritas
 - **Slug:** Veritas
-- **Versão Atual:** 1.1.7
+- **Versão Atual:** 1.1.8
 
 ## Licença
 
