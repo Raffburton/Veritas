@@ -9,6 +9,7 @@ import {
   getLiturgicalDay,
   toLocalIsoDate,
 } from '../services/liturgicalCalendarService';
+import { getLiturgicalDayDisplayTitle } from '../services/liturgicalDisplayService';
 
 const WEEKDAYS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
 const HIDDEN_CONTROLS_OFFSET = 162;
@@ -124,6 +125,7 @@ export function ReaderScreen({ route }) {
   }
 
   const selectedDateObject = dateFromIso(selectedLiturgy.date);
+  const liturgicalDayTitle = getLiturgicalDayDisplayTitle(selectedLiturgy, week);
   const allReadings = [
     ...selectedLiturgy.readings.firstReading,
     ...selectedLiturgy.readings.psalm,
@@ -133,14 +135,14 @@ export function ReaderScreen({ route }) {
   const liturgyReference = {
     source: 'liturgy',
     id: `liturgy:${selectedLiturgy.date}`,
-    title: selectedLiturgy.celebration,
+    title: liturgicalDayTitle,
     location: selectedLiturgy.date.split('-').reverse().join('/'),
     excerpt: allReadings.map((reading) => reading.reference).join(' · '),
     date: selectedLiturgy.date,
     section: 'Liturgia do dia',
   };
   const shareText = [
-    selectedLiturgy.celebration,
+    liturgicalDayTitle,
     liturgyReference.location,
     `Cor litúrgica: ${selectedLiturgy.color}`,
     '',
@@ -231,7 +233,7 @@ export function ReaderScreen({ route }) {
         </ScrollView>
 
         <View style={styles.dayHeader}>
-          <Text style={[styles.dayTitle, { color: colors.text, fontSize: fontSize + 4 }]}>{selectedLiturgy.celebration}</Text>
+          <Text style={[styles.dayTitle, { color: colors.text, fontSize: fontSize + 4 }]}>{liturgicalDayTitle}</Text>
           <Text style={[styles.dayMetadata, { color: colors.mutedText, fontSize: fontSize - 1 }]}>
             {WEEKDAYS[selectedDateObject.getDay()]} · cor {selectedLiturgy.color.toLocaleLowerCase('pt-BR')}
           </Text>

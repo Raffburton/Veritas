@@ -4,7 +4,7 @@
     "slug": "Veritas",
     "version": "1.1.8",
     "orientation": "portrait",
-    "icon": "./icon2.png",
+    "icon": "./assets/veritas-icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
@@ -13,7 +13,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#071525",
-        "foregroundImage": "./icon2.png"
+        "foregroundImage": "./assets/veritas-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "versionCode": 3,
@@ -25,7 +25,7 @@
       ]
     },
     "web": {
-      "favicon": "./icon2.png"
+      "favicon": "./assets/veritas-icon.png"
     },
     "plugins": [
       "expo-font",
