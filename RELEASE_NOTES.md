@@ -28,6 +28,8 @@ Esta versão traz uma experiência mais rápida, intuitiva e acolhedora, com mel
 - **Desempenho:** Otimizações para tornar a inicialização e o uso do aplicativo mais rápidos e fluidos.
 - **UI/UX:** Refinamentos visuais e de usabilidade para oferecer uma experiência mais clara, agradável e consistente.
 - **Navegação:** Melhorias na transição e no acesso às principais áreas do aplicativo.
+- **Atualizações no Android:** Corrigida a abertura do instalador após o download do APK e adicionada a verificação da permissão para instalar apps desconhecidos.
+- **Download integrado ao tema:** A tela de progresso da atualização agora acompanha as cores configuradas no aplicativo.
 - **Interferência visual:** Reduzida a interferência dos controles flutuantes sobre o conteúdo da liturgia durante leituras longas.
 - **Acessibilidade:** Melhorada a acessibilidade dos controles de exibição e do mecanismo de recolhimento.
 - **Navegação:** Mantido o gesto vertical de rolagem mesmo quando o usuário inicia o toque sobre o módulo flutuante.

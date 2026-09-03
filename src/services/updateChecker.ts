@@ -1,3 +1,4 @@
+import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -105,23 +106,24 @@ export async function ensureAndroidInstallPermission(): Promise<boolean> {
   }
 
   try {
-    const requestInstallPackagesPermission = 'android.permission.REQUEST_INSTALL_PACKAGES' as any;
-
-    const hasPermission = await PermissionsAndroid.check(requestInstallPackagesPermission);
-    if (hasPermission) {
+    const apiLevel = Number(Platform.Version ?? 0);
+    if (apiLevel < 26) {
       return true;
     }
 
-    const result = await PermissionsAndroid.request(requestInstallPackagesPermission, {
-      title: 'Permitir instalação de apps desconhecidos',
-      message: 'Para instalar a atualização, habilite a instalação de apps de fontes desconhecidas.',
-      buttonPositive: 'Permitir',
-      buttonNegative: 'Cancelar',
+    const applicationId = Application.applicationId;
+    if (!applicationId) {
+      throw new Error('Não foi possível identificar o aplicativo instalado.');
+    }
+
+    await IntentLauncher.startActivityAsync(IntentLauncher.ActivityAction.MANAGE_UNKNOWN_APP_SOURCES, {
+      data: `package:${applicationId}`,
     });
 
-    return result === PermissionsAndroid.RESULTS.GRANTED;
-  } catch {
-    return false;
+    return true;
+  } catch (error) {
+    console.warn('Unknown sources settings could not be opened:', error);
+    throw new Error('Não foi possível abrir a permissão para instalar apps desconhecidos.');
   }
 }
 
@@ -182,14 +184,17 @@ export async function installDownloadedApk(apkUri: string): Promise<void> {
       throw new Error('Permissão para instalar apps desconhecidos negada.');
     }
 
-    const installUri = apkUri.startsWith('file://') ? apkUri : `file://${apkUri}`;
+    const fileUri = apkUri.startsWith('file://') ? apkUri : `file://${apkUri}`;
+    const installUri = await FileSystem.getContentUriAsync(fileUri);
 
     await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
       data: installUri,
       type: 'application/vnd.android.package-archive',
+      flags: 1,
     });
-  } catch {
-    throw new Error('Não foi possível iniciar a instalação da atualização.');
+  } catch (error) {
+    console.warn('APK installer could not be opened:', error);
+    throw new Error('Não foi possível iniciar a instalação. Confirme a permissão para instalar apps desconhecidos e tente novamente.');
   }
 }
 

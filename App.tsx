@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -11,7 +11,7 @@ import { DailyLiturgyProvider } from './src/context/DailyLiturgyContext';
 import { NotificationProvider } from './src/context/NotificationContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
-import { checkForUpdates, downloadLatestApk, getGitHubReleasesUrl, installDownloadedApk } from './src/services/updateChecker';
+import { checkForUpdates, downloadLatestApk, installDownloadedApk } from './src/services/updateChecker';
 
 const WELCOME_COMPLETED_KEY = '@veritas:welcome-completed';
 const REMIND_LATER_KEY = 'veritas:update:remindLater';
@@ -39,6 +39,35 @@ function AppLoadingScreen() {
     <View style={[styles.appLoading, { backgroundColor: colors.background }]}>
       <ActivityIndicator size="large" color={colors.primary} />
     </View>
+  );
+}
+
+type DownloadModalProps = {
+  visible: boolean;
+  progress: number;
+  message: string;
+};
+
+function DownloadModal({ visible, progress, message }: DownloadModalProps) {
+  const { colors } = useTheme();
+  const safeProgress = Math.min(Math.max(progress, 0), 100);
+
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={() => undefined}>
+      <View style={styles.modalBackdrop}>
+        <View style={[styles.downloadCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.downloadTitle, { color: colors.text }]}>Atualizando o aplicativo</Text>
+          <Text style={[styles.downloadMessage, { color: colors.mutedText }]}>
+            {message || 'Preparando download...'}
+          </Text>
+          <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
+            <View style={[styles.progressFill, { width: `${safeProgress}%`, backgroundColor: colors.primary }]} />
+          </View>
+          <Text style={[styles.progressValue, { color: colors.primary }]}>{Math.round(safeProgress)}%</Text>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -236,26 +265,8 @@ export default function App() {
         ) : (
           <WelcomeScreen onContinue={completeWelcome} />
         )}
+        <DownloadModal visible={isDownloading} progress={downloadProgress} message={downloadMessage} />
       </ThemeProvider>
-
-      <Modal transparent visible={isDownloading} animationType="fade" onRequestClose={() => undefined}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.downloadCard}>
-            <ActivityIndicator size="large" color="#315E8A" />
-            <Text style={styles.downloadTitle}>Atualizando o aplicativo</Text>
-            <Text style={styles.downloadMessage}>{downloadMessage || 'Preparando download...'}</Text>
-            <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${Math.min(Math.max(downloadProgress, 0), 100)}%` },
-                ]}
-              />
-            </View>
-            <Text style={styles.progressValue}>{Math.round(downloadProgress)}%</Text>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaProvider>
   );
 }
@@ -276,8 +287,8 @@ const styles = StyleSheet.create({
   downloadCard: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#fff',
     borderRadius: 18,
+    borderWidth: 1,
     padding: 24,
     alignItems: 'center',
   },
@@ -285,12 +296,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 18,
     fontWeight: '700',
-    color: '#18212B',
   },
   downloadMessage: {
     marginTop: 8,
     fontSize: 13,
-    color: '#596573',
     textAlign: 'center',
   },
   progressTrack: {
@@ -299,17 +308,14 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 999,
     overflow: 'hidden',
-    backgroundColor: '#E4EBF4',
   },
   progressFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: '#315E8A',
   },
   progressValue: {
     marginTop: 8,
     fontSize: 13,
     fontWeight: '600',
-    color: '#315E8A',
   },
 });
