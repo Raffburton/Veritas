@@ -23,23 +23,6 @@ Esta versão traz uma experiência mais rápida, intuitiva e acolhedora, com mel
 - A animação foi desenvolvida para não interferir na rolagem vertical da liturgia.
 - Foram adicionados rótulos e instruções para tecnologias assistivas.
 
-### 🇻🇦 Seção “Palavras do Papa” e Santo do Dia
-- **Palavras do Papa:** Adicionada nova seção localizada logo abaixo da liturgia diária, sincronizada e atualizada automaticamente com o *Vatican News* a cada 6 ou 12 horas.
-- **Santo do Dia:** Adicionada a funcionalidade com sincronização diária (1 vez ao dia) integrada ao *Vatican News*.
-
-### ⛪ Novas opções de contribuição e integração Pix/Dizify
-- **Pix Direto:** Adicionada a opção de doar para as igrejas através de chave Pix diretamente pelo aplicativo.
-- **Integração com Dizify:** Suporte e integração com a plataforma *Dizify* para casos em que a igreja ainda não estiver cadastrada.
-- **Novas Instituições Adicionadas:**
-  - Catedral Metropolitana Nossa Senhora da Conceição — *Campinas/SP*
-  - Catedral Metropolitana de São Sebastião — *Ribeirão Preto/SP*
-  - Paróquia Matriz de São Pedro Apóstolo — *Tupã/SP*
-  - Catedral Metropolitana de São Paulo — Sé, *São Paulo/SP*
-  - Santuário Nacional de Nossa Senhora Aparecida — *Aparecida/SP*
-- **Novas Categorias:** As instituições estão organizadas em *“Cidades do Interior de São Paulo”* e *“Principais Catedrais e Santuários Nacionais”*.
-
----
-
 ## 🛠️ Correções e melhorias
 
 - **Desempenho:** Otimizações para tornar a inicialização e o uso do aplicativo mais rápidos e fluidos.
