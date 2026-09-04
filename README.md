@@ -45,10 +45,13 @@ Além disso, o Veritas procura unir tecnologia e espiritualidade de maneira leve
 - Acesso a devoções e orações estruturadas
 - Biblioteca de preces para diferentes momentos
 
-### ✓ Anotações Pessoais
+### ✓ Coleções e Notas
 - Registro de notas e estudos pessoais
 - Persistência de dados locais
-- Organização flexível de conteúdo
+- Criação, edição e exclusão de pastas
+- Movimentação de notas entre pastas
+- Exclusão de pastas com confirmação
+- Layout ajustado para melhorar a leitura e a organização
 
 ### ✓ Recursos Avançados
 - Funcionamento offline com dados sincronizados
@@ -56,6 +59,12 @@ Além disso, o Veritas procura unir tecnologia e espiritualidade de maneira leve
 - Suporte a múltiplos temas de leitura, incluindo modos claros e escuros
 - Ajuste global do tamanho do texto
 - Sincronização do calendário litúrgico
+- Atualização automática do aplicativo com verificação de permissões a cada nova versão
+- Automação das informações do projeto
+
+### ✓ Compartilhamento
+- Compartilhamento de trechos e notas
+- Compartilhamento das Palavras do Papa
 
 ### ✓ Ajude a Igreja
 - Lista de paróquias, catedrais e santuários organizada por região e categoria
@@ -105,7 +114,7 @@ src/
 │   ├── ReaderScreen.js        - Liturgia diária e controles de leitura
 │   ├── BibleScreen.tsx        - Leitor da Bíblia
 │   ├── PrayersScreen.tsx      - Orações e devoções
-│   ├── NotesScreen.tsx        - Anotações pessoais
+│   ├── NotesScreen.tsx        - Coleções e notas pessoais
 │   ├── WelcomeScreen.tsx      - Apresentação inicial do aplicativo
 │   └── SettingsScreen.tsx     - Configurações
 ├── components/           - Componentes reutilizáveis
