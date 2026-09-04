@@ -109,7 +109,7 @@ export function ContentActions({ reference, shareText, shareOptions }: ContentAc
             <View style={styles.dialogHeader}>
               <View style={styles.dialogTitleArea}>
                 <Text style={[styles.dialogTitle, { color: colors.text }]}>O que compartilhar?</Text>
-                <Text style={[styles.shareDescription, { color: colors.mutedText }]}>Selecione uma ou mais partes da liturgia.</Text>
+                <Text style={[styles.shareDescription, { color: colors.mutedText }]}>Selecione uma ou mais partes do conteúdo.</Text>
               </View>
               <Pressable accessibilityLabel="Fechar" onPress={() => setShareOpen(false)}>
                 <Ionicons name="close" size={24} color={colors.mutedText} />

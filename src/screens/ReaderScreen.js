@@ -197,6 +197,18 @@ export function ReaderScreen({ route }) {
       label: 'Evangelho',
       text: readingShareBlock('Evangelho', selectedLiturgy.readings.gospel).join('\n').trim(),
     },
+    ...(selectedPapalWords
+      ? [{
+          id: 'papal-words',
+          label: 'Palavras do Papa',
+          text: [
+            'PALAVRAS DO PAPA',
+            selectedPapalWords.text,
+            '',
+            `Fonte: ${selectedPapalWords.sourceUrl}`,
+          ].join('\n'),
+        }]
+      : []),
   ].filter((option) => option.text);
 
   return (
