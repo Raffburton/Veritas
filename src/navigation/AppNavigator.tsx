@@ -2,6 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useUpdates } from '../context/UpdateContext';
 import { useTheme } from '../context/ThemeContext';
 import { BibleScreen } from '../screens/BibleScreen';
 import { NotesScreen } from '../screens/NotesScreen';
@@ -32,6 +33,7 @@ const icons: Record<
 
 export function AppNavigator() {
   const { colors } = useTheme();
+  const { latestVersion } = useUpdates();
   const insets = useSafeAreaInsets();
 
   return (
@@ -79,7 +81,7 @@ export function AppNavigator() {
       <Tab.Screen
         name="Settings"
         component={SettingsScreen}
-        options={{ title: 'Configurações' }}
+        options={{ title: 'Configurações', tabBarBadge: latestVersion ? '!' : undefined }}
       />
     </Tab.Navigator>
   );

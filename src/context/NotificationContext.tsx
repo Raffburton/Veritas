@@ -53,7 +53,7 @@ const initialPreferences: NotificationPreferences = {
 
 const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
 
-async function prepareNotifications(notifications: NotificationsModule) {
+async function prepareNotifications(notifications: NotificationsModule, requestPermission = true) {
   if (Platform.OS === 'android') {
     await notifications.setNotificationChannelAsync(CHANNEL_ID, {
       name: 'Lembretes do Veritas',
@@ -65,8 +65,23 @@ async function prepareNotifications(notifications: NotificationsModule) {
 
   const current = await notifications.getPermissionsAsync();
   if (current.status === 'granted') return true;
+  if (!requestPermission || !current.canAskAgain) return false;
   const requested = await notifications.requestPermissionsAsync();
   return requested.status === 'granted';
+}
+
+let initialPermissionRequest: Promise<void> | null = null;
+
+export function initializeNotificationPermission(): Promise<void> {
+  initialPermissionRequest ??= (async () => {
+    const notifications = await loadNotificationsModule();
+    if (!notifications) return;
+    const key = '@veritas:notification-permission-asked';
+    const asked = await AsyncStorage.getItem(key);
+    await prepareNotifications(notifications, !asked);
+    await AsyncStorage.setItem(key, 'true');
+  })();
+  return initialPermissionRequest;
 }
 
 async function cancelPreviousSchedules(notifications: NotificationsModule) {
@@ -102,9 +117,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const notifications = await loadNotificationsModule();
     if (!notifications) return;
 
+    await initializeNotificationPermission();
     await cancelPreviousSchedules(notifications);
     if (!Object.values(current).some(Boolean)) return;
-    if (!await prepareNotifications(notifications)) return;
+    if (!await prepareNotifications(notifications, false)) return;
 
     const scheduled: string[] = [];
     const channelId = Platform.OS === 'android' ? CHANNEL_ID : undefined;
@@ -195,7 +211,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready || !libraryReady) return undefined;
-    const timeout = setTimeout(() => void synchronizeNotifications(preferences), 250);
+    const timeout = setTimeout(() => void synchronizeNotifications(preferences).catch((error) => console.warn('Notification scheduling failed:', error)), 250);
     return () => clearTimeout(timeout);
   }, [libraryReady, preferences, ready, synchronizeNotifications]);
 

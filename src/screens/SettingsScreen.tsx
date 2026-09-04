@@ -4,6 +4,8 @@ import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
+import { useUpdates } from '../context/UpdateContext';
+
 import packageManifest from '../../package.json';
 import { SwipeDownDismiss } from '../components/SwipeDownDismiss';
 import {
@@ -174,6 +176,7 @@ export function SettingsScreen() {
     setPreference: setNotificationPreference,
     supported: notificationsSupported,
   } = useNotifications();
+  const { latestVersion, isDownloading, installUpdate } = useUpdates();
   const [panel, setPanel] = useState<Panel>(null);
   const [pixCopied, setPixCopied] = useState(false);
   const [copiedChurchId, setCopiedChurchId] = useState<string | null>(null);
@@ -228,6 +231,23 @@ export function SettingsScreen() {
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={[styles.title, { color: colors.text }]}>Configurações</Text>
+        {latestVersion ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Nova versão ${latestVersion} disponível. Instalar agora`}
+            accessibilityState={{ disabled: isDownloading }}
+            disabled={isDownloading}
+            onPress={() => void installUpdate()}
+            style={[styles.updateNotice, { backgroundColor: colors.surface, borderColor: colors.primary }]}
+          >
+            <Ionicons name="cloud-download-outline" size={27} color={colors.primary} />
+            <View style={styles.rowText}>
+              <Text style={[styles.rowTitle, { color: colors.primary }]}>Nova versão disponível</Text>
+              <Text style={[styles.updateDescription, { color: colors.text }]}>Versão {latestVersion} · {isDownloading ? 'Atualizando…' : 'Toque para instalar agora'}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+          </Pressable>
+        ) : null}
         <Text style={[styles.sectionLabel, { color: colors.mutedText }]}>LEITURA</Text>
         <View style={[styles.group, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <SettingsRow
@@ -853,6 +873,8 @@ const styles = StyleSheet.create({
   brandMark: { width: 66, height: 66, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 33 },
   brand: { marginTop: 7, fontFamily: 'serif', fontSize: 34, fontWeight: '700' },
   tagline: { marginTop: 2, fontFamily: 'serif', fontSize: 14, fontWeight: '600' },
+  updateNotice: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1, borderRadius: 16, marginTop: 16, marginBottom: 8 },
+  updateDescription: { fontSize: 13, lineHeight: 19, marginTop: 4 },
   paragraph: { marginTop: 15, fontSize: 14, lineHeight: 21, textAlign: 'center' },
   aboutHistoryTitle: { marginTop: 24, fontSize: 18, fontWeight: '600' },
   aboutHistoryParagraph: { marginTop: 12, fontSize: 14, lineHeight: 22 },

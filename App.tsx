@@ -1,14 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { UpdateContext } from './src/context/UpdateContext';
 import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LibraryProvider } from './src/context/LibraryContext';
 import { DailyLiturgyProvider } from './src/context/DailyLiturgyContext';
-import { NotificationProvider } from './src/context/NotificationContext';
+import { initializeNotificationPermission, NotificationProvider } from './src/context/NotificationContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import {
@@ -20,6 +22,7 @@ import {
 } from './src/services/updateChecker';
 
 const WELCOME_COMPLETED_KEY = '@veritas:welcome-completed';
+const INSTALL_PERMISSION_ASKED_KEY = '@veritas:install-permission-asked';
 const REMIND_LATER_KEY = 'veritas:update:remindLater';
 const REMINDER_TTL_MS = 24 * 60 * 60 * 1000;
 const REMINDER_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -123,6 +126,8 @@ function askForInstallPermission(): Promise<boolean> {
 
 export default function App() {
   const [hasCompletedWelcome, setHasCompletedWelcome] = useState<boolean | null>(null);
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
+  const installing = useRef(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadMessage, setDownloadMessage] = useState('');
@@ -147,6 +152,48 @@ export default function App() {
     setHasCompletedWelcome(true);
     void AsyncStorage.setItem(WELCOME_COMPLETED_KEY, 'true').catch(() => undefined);
   };
+
+  const installUpdate = useCallback(async () => {
+    if (installing.current || Platform.OS !== 'android') return;
+    installing.current = true;
+    try {
+      if (!await hasAndroidInstallPermission() && !await askForInstallPermission()) return;
+      await AsyncStorage.removeItem(REMIND_LATER_KEY);
+      setDownloadProgress(0);
+      setIsDownloading(true);
+      setDownloadMessage('Baixando atualização...');
+
+      const apkPath = await downloadLatestApk((progress, totalBytes) => {
+        const safeProgress = Math.min(Math.max(progress, 0), 100);
+        const downloadedBytes = (safeProgress / 100) * totalBytes;
+        const totalMegabytes = totalBytes > 0 ? totalBytes / (1024 * 1024) : 0;
+        const downloadedMegabytes = downloadedBytes / (1024 * 1024);
+
+        setDownloadProgress(safeProgress);
+
+        if (totalMegabytes > 0) {
+          setDownloadMessage(
+            `Baixando atualização... ${downloadedMegabytes.toFixed(1)} MB de ${totalMegabytes.toFixed(1)} MB (${Math.round(safeProgress)}%)`,
+          );
+        } else {
+          setDownloadMessage(`Baixando atualização... ${Math.round(safeProgress)}%`);
+        }
+      });
+
+      setDownloadMessage('Instalando atualização...');
+      await installDownloadedApk(apkPath);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Não foi possível completar a atualização.';
+      console.warn('Update installation failed:', message);
+
+      Alert.alert('Não foi possível atualizar', message);
+    } finally {
+      installing.current = false;
+      setIsDownloading(false);
+      setDownloadProgress(0);
+      setDownloadMessage('');
+    }
+  }, []);
 
   useEffect(() => {
     if (hasCompletedWelcome !== true) return undefined;
@@ -174,20 +221,14 @@ export default function App() {
           return;
         }
 
+        setLatestVersion(updateStatus.hasUpdate && Platform.OS === 'android' ? updateStatus.latestVersion : null);
+
         if (!updateStatus.hasUpdate) {
           return;
         }
 
         if (Platform.OS !== 'android') {
           return;
-        }
-
-        const alreadyAllowedToInstall = await hasAndroidInstallPermission();
-        if (!alreadyAllowedToInstall) {
-          const permissionGranted = await askForInstallPermission();
-          if (!permissionGranted || !mounted) {
-            return;
-          }
         }
 
         const storedReminder = await AsyncStorage.getItem(REMIND_LATER_KEY);
@@ -216,7 +257,7 @@ export default function App() {
           `Nova atualização disponível (${latestVersionLabel})! Deseja baixar e instalar agora?`,
           [
             {
-              text: 'Lembrar Mais Tarde',
+              text: 'Instalar mais tarde',
               style: 'cancel',
               onPress: async () => {
                 await AsyncStorage.setItem(
@@ -226,49 +267,8 @@ export default function App() {
               },
             },
             {
-              text: 'Atualizar Agora',
-              onPress: async () => {
-                try {
-                  await AsyncStorage.removeItem(REMIND_LATER_KEY);
-                  setDownloadProgress(0);
-                  setIsDownloading(true);
-                  setDownloadMessage('Baixando atualização...');
-
-                  const apkPath = await downloadLatestApk((progress, totalBytes) => {
-                    const safeProgress = Math.min(Math.max(progress, 0), 100);
-                    const downloadedBytes = (safeProgress / 100) * totalBytes;
-                    const totalMegabytes = totalBytes > 0 ? totalBytes / (1024 * 1024) : 0;
-                    const downloadedMegabytes = downloadedBytes / (1024 * 1024);
-
-                    setDownloadProgress(safeProgress);
-
-                    if (totalMegabytes > 0) {
-                      setDownloadMessage(
-                        `Baixando atualização... ${downloadedMegabytes.toFixed(1)} MB de ${totalMegabytes.toFixed(1)} MB (${Math.round(safeProgress)}%)`,
-                      );
-                    } else {
-                      setDownloadMessage(`Baixando atualização... ${Math.round(safeProgress)}%`);
-                    }
-                  });
-
-                  setDownloadMessage('Instalando atualização...');
-                  await installDownloadedApk(apkPath);
-                } catch (error) {
-                  const message = error instanceof Error ? error.message : 'Não foi possível completar a atualização.';
-                  console.warn('Update installation failed:', message);
-
-                  if (message.includes('Permissão') || message.includes('Não foi possível iniciar') || message.includes('baixar')) {
-                    Alert.alert(
-                      'Não foi possível atualizar',
-                      'A atualização falhou. Verifique a conexão com a internet, as permissões do Android e tente novamente.',
-                    );
-                  }
-                } finally {
-                  setIsDownloading(false);
-                  setDownloadProgress(0);
-                  setDownloadMessage('');
-                }
-              },
+              text: 'Instalar agora',
+              onPress: () => void installUpdate(),
             },
           ],
         );
@@ -285,7 +285,23 @@ export default function App() {
       }
     }
 
-    void checkAppUpdate();
+    async function initialize() {
+      try {
+        await initializeNotificationPermission();
+        if (!mounted) return;
+        if (Platform.OS === 'android' && Constants.executionEnvironment !== ExecutionEnvironment.StoreClient) {
+          const asked = await AsyncStorage.getItem(INSTALL_PERMISSION_ASKED_KEY);
+          if (!asked && mounted) {
+            if (!await hasAndroidInstallPermission()) await askForInstallPermission();
+            await AsyncStorage.setItem(INSTALL_PERMISSION_ASKED_KEY, 'true');
+          }
+        }
+      } catch (error) {
+        console.warn('Initial permission check failed:', error);
+      }
+      if (mounted && Constants.executionEnvironment !== ExecutionEnvironment.StoreClient) void checkAppUpdate();
+    }
+    void initialize();
 
     return () => {
       mounted = false;
@@ -293,7 +309,7 @@ export default function App() {
         clearTimeout(retryTimer);
       }
     };
-  }, [hasCompletedWelcome]);
+  }, [hasCompletedWelcome, installUpdate]);
 
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
@@ -305,9 +321,11 @@ export default function App() {
           <LibraryProvider>
             <NotificationProvider>
               <DailyLiturgyProvider>
-                <NavigationContainer>
-                  <AppNavigator />
-                </NavigationContainer>
+                <UpdateContext.Provider value={{ latestVersion, isDownloading, installUpdate }}>
+                  <NavigationContainer>
+                    <AppNavigator />
+                  </NavigationContainer>
+                </UpdateContext.Provider>
               </DailyLiturgyProvider>
             </NotificationProvider>
           </LibraryProvider>
