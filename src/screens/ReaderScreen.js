@@ -51,6 +51,10 @@ function ReadingCard({ heading, readings, colors, fontSize }) {
 
 export function ReaderScreen({ route }) {
   const { colors, theme, fontSize, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
+  const daySelectorRef = useRef(null);
+  const dayLayouts = useRef(new Map());
+  const daySelectorViewportWidth = useRef(0);
+  const daySelectorContentWidth = useRef(0);
   const [controlsHidden, setControlsHidden] = useState(true);
   const controlsTranslateX = useRef(new Animated.Value(HIDDEN_CONTROLS_OFFSET)).current;
   const animateControls = (hidden) => {
@@ -106,9 +110,23 @@ export function ReaderScreen({ route }) {
   const [selectedDate, setSelectedDate] = useState(
     requestedDate ?? today,
   );
+  const positionSelectedDay = (date, animated = false) => {
+    const layout = dayLayouts.current.get(date);
+    const viewportWidth = daySelectorViewportWidth.current;
+    if (!layout || viewportWidth <= 0) return;
+
+    const centeredOffset = layout.x - (viewportWidth - layout.width) / 2;
+    const maximumOffset = Math.max(0, daySelectorContentWidth.current - viewportWidth);
+    const x = Math.min(Math.max(0, centeredOffset), maximumOffset);
+    daySelectorRef.current?.scrollTo({ x, y: 0, animated });
+  };
   useEffect(() => {
     if (requestedDate) setSelectedDate(requestedDate);
   }, [requestedDate]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => positionSelectedDay(selectedDate));
+    return () => cancelAnimationFrame(frame);
+  }, [selectedDate]);
   useEffect(() => {
     void loadPapalWords(selectedDate);
   }, [loadPapalWords, selectedDate]);
@@ -225,12 +243,29 @@ export function ReaderScreen({ route }) {
                 : 'Calendário disponível offline'}
           </Text>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daySelector}>
+        <ScrollView
+          ref={daySelectorRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.daySelector}
+          onLayout={(event) => {
+            daySelectorViewportWidth.current = event.nativeEvent.layout.width;
+            positionSelectedDay(selectedDate);
+          }}
+          onContentSizeChange={(width) => {
+            daySelectorContentWidth.current = width;
+            positionSelectedDay(selectedDate);
+          }}
+        >
           {week.map((day) => {
             const date = dateFromIso(day.date);
             const selected = day.date === selectedDate;
             return (
               <Pressable key={day.date} accessibilityRole="button" accessibilityState={{ selected }}
+                onLayout={(event) => {
+                  dayLayouts.current.set(day.date, event.nativeEvent.layout);
+                  if (selected) positionSelectedDay(day.date);
+                }}
                 onPress={() => setSelectedDate(day.date)} style={[styles.dayButton, {
                   backgroundColor: selected ? colors.primary : colors.surface,
                   borderColor: selected ? colors.primary : colors.border,
