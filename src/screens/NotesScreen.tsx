@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useFocusEffect, useNavigation, usePreventRemove } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, BackHandler, FlatList, Modal, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BackHandler, FlatList, Modal, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useLibrary } from '../context/LibraryContext';
 import { useTheme } from '../context/ThemeContext';
@@ -42,6 +42,7 @@ export function NotesScreen() {
   const [moveTarget, setMoveTarget] = useState<LinkedNote | null>(null);
   const [noteToMoveIntoNewFolder, setNoteToMoveIntoNewFolder] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [folderToDelete, setFolderToDelete] = useState<NoteFolder | null>(null);
   const [folderToEdit, setFolderToEdit] = useState<NoteFolder | null>(null);
   const [editedFolderName, setEditedFolderName] = useState('');
   const [editedFolderColor, setEditedFolderColor] = useState(FOLDER_COLORS[0]);
@@ -119,10 +120,15 @@ export function NotesScreen() {
 
   function confirmFolderDeletion(folder = activeFolder) {
     if (!folder) return;
-    Alert.alert(`Excluir “${folder.name}”?`, 'As notas da pasta serão mantidas em “Sem pasta”.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir pasta', style: 'destructive', onPress: () => { if (folderFilter === folder.id) setFolderFilter('root'); setFolderToEdit(null); void deleteFolder(folder.id); } },
-    ]);
+    setFolderToDelete(folder);
+  }
+
+  function deleteSelectedFolder() {
+    if (!folderToDelete) return;
+    if (folderFilter === folderToDelete.id) setFolderFilter('root');
+    setFolderToDelete(null);
+    setFolderToEdit(null);
+    void deleteFolder(folderToDelete.id);
   }
 
   function deleteSelectedItem() {
@@ -182,9 +188,6 @@ export function NotesScreen() {
                         <View style={styles.folderTileTop}>
                           <Ionicons name="folder" size={31} color={folder.color ?? colors.primary} />
                           {folder.importance === 'high' ? <Ionicons name="star" size={14} color={folder.color ?? colors.primary} /> : null}
-                          <Pressable accessibilityLabel={`Editar pasta ${folder.name}`} hitSlop={8} onPress={(event) => { event.stopPropagation(); openFolderEditor(folder); }}>
-                            <Ionicons name="ellipsis-horizontal" size={18} color={colors.mutedText} />
-                          </Pressable>
                         </View>
                         <Text numberOfLines={1} style={[styles.folderTileName, { color: colors.text }]}>{folder.name}</Text>
                         <Text style={[styles.folderTileCount, { color: colors.mutedText }]}>{count} {count === 1 ? 'nota' : 'notas'}</Text>
@@ -212,7 +215,7 @@ export function NotesScreen() {
                   <Text style={[styles.openFolderTitle, { color: colors.text }]}>{activeFolder?.name}</Text>
                   <Text style={[styles.openFolderCount, { color: colors.mutedText }]}>{visibleNotes.length} {visibleNotes.length === 1 ? 'nota' : 'notas'}</Text>
                 </View>
-                <Pressable accessibilityLabel="Excluir pasta" hitSlop={10} onPress={confirmFolderDeletion}><Ionicons name="trash-outline" size={20} color={colors.mutedText} /></Pressable>
+                <Pressable accessibilityLabel="Excluir pasta" hitSlop={10} onPress={() => confirmFolderDeletion()}><Ionicons name="trash-outline" size={20} color={colors.mutedText} /></Pressable>
               </View>
             </View>
           )
@@ -328,6 +331,20 @@ export function NotesScreen() {
               <Pressable disabled={!editedFolderName.trim()} onPress={() => void saveFolderChanges()} style={[styles.saveFolderButton, { backgroundColor: colors.primary, opacity: editedFolderName.trim() ? 1 : 0.4 }]}>
                 <Text style={[styles.primaryButtonText, { color: colors.background }]}>Salvar alterações</Text>
               </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={folderToDelete !== null} transparent animationType="fade" onRequestClose={() => setFolderToDelete(null)}>
+        <View style={styles.modalRoot}><Pressable style={styles.backdrop} onPress={() => setFolderToDelete(null)} />
+          <View style={[styles.deleteDialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.deleteIcon}><Ionicons name="trash-outline" size={28} color="#C95B5B" /></View>
+            <Text style={[styles.dialogTitle, { color: colors.text }]}>Excluir pasta?</Text>
+            <Text style={[styles.dialogBody, { color: colors.mutedText }]}>A pasta “{folderToDelete?.name}” será excluída. As notas serão mantidas em “Sem pasta”.</Text>
+            <View style={styles.dialogActions}>
+              <Pressable onPress={() => setFolderToDelete(null)} style={[styles.dialogButton, { borderColor: colors.border }]}><Text style={[styles.secondaryButtonText, { color: colors.text }]}>Cancelar</Text></Pressable>
+              <Pressable onPress={deleteSelectedFolder} style={[styles.dialogButton, styles.deleteButton]}><Text style={styles.deleteButtonText}>Excluir pasta</Text></Pressable>
             </View>
           </View>
         </View>

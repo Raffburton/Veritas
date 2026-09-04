@@ -74,7 +74,7 @@ export function AppNavigator() {
     >
       <Tab.Screen name="Liturgy" component={ReaderScreen} options={{ title: 'Liturgia' }} />
       <Tab.Screen name="Bible" component={BibleScreen} options={{ title: 'Bíblia' }} />
-      <Tab.Screen name="Notes" component={NotesScreen} options={{ title: 'Notas' }} />
+      <Tab.Screen name="Notes" component={NotesScreen} options={{ title: 'Coleções' }} />
       <Tab.Screen name="Prayers" component={PrayersScreen} options={{ title: 'Orações' }} />
       <Tab.Screen
         name="Settings"
