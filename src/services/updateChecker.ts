@@ -5,6 +5,7 @@ import * as IntentLauncher from 'expo-intent-launcher';
 import { PermissionsAndroid, Platform } from 'react-native';
 
 import { compareVersions } from '../utils/versionCheck';
+import { canRequestPackageInstalls } from 'veritas-install-permission';
 
 type GitHubReleaseAsset = {
   name?: string;
@@ -100,9 +101,17 @@ async function ensureStoragePermission(): Promise<boolean> {
   }
 }
 
-export async function ensureAndroidInstallPermission(): Promise<boolean> {
+export async function hasAndroidInstallPermission(): Promise<boolean> {
   if (Platform.OS !== 'android') {
-    return true;
+    return false;
+  }
+
+  return canRequestPackageInstalls();
+}
+
+export async function requestAndroidInstallPermission(): Promise<boolean> {
+  if (Platform.OS !== 'android') {
+    return false;
   }
 
   try {
@@ -120,7 +129,7 @@ export async function ensureAndroidInstallPermission(): Promise<boolean> {
       data: `package:${applicationId}`,
     });
 
-    return true;
+    return hasAndroidInstallPermission();
   } catch (error) {
     console.warn('Unknown sources settings could not be opened:', error);
     throw new Error('Não foi possível abrir a permissão para instalar apps desconhecidos.');
@@ -179,7 +188,7 @@ export async function installDownloadedApk(apkUri: string): Promise<void> {
   }
 
   try {
-    const hasInstallPermission = await ensureAndroidInstallPermission();
+    const hasInstallPermission = await hasAndroidInstallPermission();
     if (!hasInstallPermission) {
       throw new Error('Permissão para instalar apps desconhecidos negada.');
     }

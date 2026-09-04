@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -11,7 +11,13 @@ import { DailyLiturgyProvider } from './src/context/DailyLiturgyContext';
 import { NotificationProvider } from './src/context/NotificationContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
-import { checkForUpdates, downloadLatestApk, installDownloadedApk } from './src/services/updateChecker';
+import {
+  checkForUpdates,
+  downloadLatestApk,
+  hasAndroidInstallPermission,
+  installDownloadedApk,
+  requestAndroidInstallPermission,
+} from './src/services/updateChecker';
 
 const WELCOME_COMPLETED_KEY = '@veritas:welcome-completed';
 const REMIND_LATER_KEY = 'veritas:update:remindLater';
@@ -83,6 +89,38 @@ function hasValidReminder(reminder: { version?: string; remindedAt?: number } | 
   return reminder.version === latestVersion && age < REMINDER_TTL_MS;
 }
 
+function askForInstallPermission(): Promise<boolean> {
+  return new Promise((resolve) => {
+    Alert.alert(
+      'Permitir atualização do Veritas',
+      'Para instalar novas versões baixadas pelo Veritas, autorize este app a instalar aplicativos. Na próxima tela, ative “Permitir desta fonte” e volte ao Veritas.',
+      [
+        { text: 'Agora não', style: 'cancel', onPress: () => resolve(false) },
+        {
+          text: 'Abrir configurações',
+          onPress: () => {
+            void requestAndroidInstallPermission()
+              .then((granted) => {
+                if (!granted) {
+                  Alert.alert(
+                    'Permissão não concedida',
+                    'A atualização não poderá ser instalada até que “Permitir desta fonte” seja ativado para o Veritas.',
+                  );
+                }
+                resolve(granted);
+              })
+              .catch(() => {
+                Alert.alert('Não foi possível abrir as configurações', 'Tente novamente mais tarde.');
+                resolve(false);
+              });
+          },
+        },
+      ],
+      { cancelable: false },
+    );
+  });
+}
+
 export default function App() {
   const [hasCompletedWelcome, setHasCompletedWelcome] = useState<boolean | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -138,6 +176,18 @@ export default function App() {
 
         if (!updateStatus.hasUpdate) {
           return;
+        }
+
+        if (Platform.OS !== 'android') {
+          return;
+        }
+
+        const alreadyAllowedToInstall = await hasAndroidInstallPermission();
+        if (!alreadyAllowedToInstall) {
+          const permissionGranted = await askForInstallPermission();
+          if (!permissionGranted || !mounted) {
+            return;
+          }
         }
 
         const storedReminder = await AsyncStorage.getItem(REMIND_LATER_KEY);
