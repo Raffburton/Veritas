@@ -73,6 +73,7 @@ test('fetchPapalWords keeps only the papal commentary from the Vatican payload',
   try {
     const result = await fetchPapalWords('2026-09-01');
     assert.ok(result);
+    if (!result) throw new Error('Resultado papal esperado.');
     assert.deepEqual({ ...result, fetchedAt: '<dynamic>' }, {
       date: '2026-09-01',
       text: 'A reflexão papal.',

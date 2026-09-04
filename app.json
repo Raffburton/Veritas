@@ -29,7 +29,8 @@
     },
     "plugins": [
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-status-bar"
     ],
     "extra": {
       "eas": {

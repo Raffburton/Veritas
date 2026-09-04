@@ -88,7 +88,7 @@ Consulte também as [notas da versão 1.1.8](./RELEASE_NOTES.md) para conhecer a
 ## Tecnologias utilizadas
 
 - **React Native** 0.81.5 - Framework mobile multiplataforma
-- **Expo** ~54.0.0 - Plataforma de desenvolvimento
+- **Expo** ^57.0.0 - Plataforma de desenvolvimento
 - **TypeScript** ~5.9.2 - Tipagem estática
 - **React Navigation** 7.x - Navegação multi-tela
 - **AsyncStorage** 2.2.0 - Armazenamento local persistente

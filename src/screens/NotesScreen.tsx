@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   linkedLabel: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 5 },
   linkedText: { fontSize: 10, fontWeight: '700' },
   deleteModalRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  deleteBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.72)' },
+  deleteBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.72)' },
   deleteDialog: { width: '100%', maxWidth: 360, alignItems: 'center', padding: 24, borderWidth: 1, borderRadius: 20 },
   deleteIcon: { width: 60, height: 60, alignItems: 'center', justifyContent: 'center', marginBottom: 17,
     backgroundColor: 'rgba(201,91,91,0.13)', borderRadius: 30 },

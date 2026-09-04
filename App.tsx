@@ -20,13 +20,12 @@ const REMINDER_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const AUTO_RETRY_DELAY_MS = 30000;
 
 function ThemedStatusBar() {
-  const { colors, theme } = useTheme();
+  const { theme } = useTheme();
   const isDarkTheme = theme.startsWith('dark');
 
   return (
     <StatusBar
       animated
-      backgroundColor={colors.background}
       style={isDarkTheme ? 'light' : 'dark'}
     />
   );

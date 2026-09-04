@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
   offlineNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 2 },
   offlineText: { fontSize: 12, fontWeight: '600' },
   modalRoot: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.55)' },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0, 0, 0, 0.55)' },
   sheet: { width: '100%', maxHeight: '88%', paddingTop: 9, borderWidth: 1, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   handle: { alignSelf: 'center', width: 42, height: 4, marginBottom: 10, borderRadius: 2 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 13 },

@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   prayerText: { flex: 1 }, prayerTitle: { marginBottom: 4, fontFamily: 'serif', fontSize: 17, fontWeight: '700' },
   prayerDescription: { fontSize: 12 }, pressed: { opacity: 0.58 },
   modalRoot: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.58)' },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.58)' },
   sheet: { maxHeight: '88%', paddingTop: 9, borderWidth: 1, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   handle: { alignSelf: 'center', width: 42, height: 4, marginBottom: 10, borderRadius: 2 },
   sheetHeader: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 20, paddingBottom: 15 },

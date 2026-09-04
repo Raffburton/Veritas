@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', marginBottom: 16, paddingVertical: 9, borderWidth: 1, borderRadius: 13 },
   action: { flex: 1, alignItems: 'center', gap: 4 }, actionLabel: { fontSize: 11, fontWeight: '700' },
   modalRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 22 },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.6)' },
   dialog: { width: '100%', padding: 18, borderWidth: 1, borderRadius: 17 },
   dialogHeader: { flexDirection: 'row', alignItems: 'flex-start' }, dialogTitleArea: { flex: 1 },
   dialogTitle: { fontFamily: 'serif', fontSize: 22, fontWeight: '700' },
