@@ -161,6 +161,12 @@ npm install
 # Iniciar servidor Expo
 npm start
 
+# Expo Go na rede local sem consultas do CLI aos servidores da Expo
+npm run start:offline
+
+# Limpar o cache somente para investigar problemas de bundling
+npm run start:clear
+
 # Abrir no Android
 npm run android
 
@@ -173,6 +179,10 @@ npm run web
 # Sincronizar calendário litúrgico
 npm run sync:calendar
 ```
+
+Os comandos normais preservam o cache do Metro entre execuções. A primeira compilação pode demorar mais; as seguintes reaproveitam o cache. As abas secundárias, incluindo os dados da Bíblia, são inicializadas quando abertas pela primeira vez.
+
+Se aparecer um aviso de falha ao buscar o certificado de desenvolvimento da Expo, o CLI pode estar aguardando uma resposta dos servidores da Expo antes de usar o certificado salvo. Para desenvolver na mesma rede Wi-Fi, encerre o servidor e use `npm run start:offline`. Essa opção evita as consultas externas do CLI; o app continua podendo acessar a internet para sincronizar a liturgia. Computador e celular precisam conseguir se comunicar pela rede local.
 
 ## Ideia Central do Projeto
 

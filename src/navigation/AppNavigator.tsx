@@ -4,11 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUpdates } from '../context/UpdateContext';
 import { useTheme } from '../context/ThemeContext';
-import { BibleScreen } from '../screens/BibleScreen';
-import { NotesScreen } from '../screens/NotesScreen';
-import { PrayersScreen } from '../screens/PrayersScreen';
 import { ReaderScreen } from '../screens/ReaderScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
+
+// Adia a avaliação das telas e dos dados da Bíblia até a primeira visita à aba.
+const getBibleScreen = () => require('../screens/BibleScreen').BibleScreen;
+const getNotesScreen = () => require('../screens/NotesScreen').NotesScreen;
+const getPrayersScreen = () => require('../screens/PrayersScreen').PrayersScreen;
+const getSettingsScreen = () => require('../screens/SettingsScreen').SettingsScreen;
 
 export type RootTabParamList = {
   Liturgy: { date?: string } | undefined;
@@ -40,6 +42,7 @@ export function AppNavigator() {
     <Tab.Navigator
       initialRouteName="Liturgy"
       screenOptions={({ route }) => ({
+        lazy: true,
         headerTitle: 'veritas',
         headerTitleAlign: 'center',
         headerStyle: { backgroundColor: colors.background },
@@ -75,12 +78,12 @@ export function AppNavigator() {
       })}
     >
       <Tab.Screen name="Liturgy" component={ReaderScreen} options={{ title: 'Liturgia' }} />
-      <Tab.Screen name="Bible" component={BibleScreen} options={{ title: 'Bíblia' }} />
-      <Tab.Screen name="Notes" component={NotesScreen} options={{ title: 'Coleções' }} />
-      <Tab.Screen name="Prayers" component={PrayersScreen} options={{ title: 'Orações' }} />
+      <Tab.Screen name="Bible" getComponent={getBibleScreen} options={{ title: 'Bíblia' }} />
+      <Tab.Screen name="Notes" getComponent={getNotesScreen} options={{ title: 'Coleções' }} />
+      <Tab.Screen name="Prayers" getComponent={getPrayersScreen} options={{ title: 'Orações' }} />
       <Tab.Screen
         name="Settings"
-        component={SettingsScreen}
+        getComponent={getSettingsScreen}
         options={{ title: 'Configurações', tabBarBadge: latestVersion ? '!' : undefined }}
       />
     </Tab.Navigator>
