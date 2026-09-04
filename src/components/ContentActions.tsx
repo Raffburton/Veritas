@@ -60,10 +60,10 @@ export function ContentActions({ reference, shareText, shareOptions }: ContentAc
           <Ionicons name="create-outline" size={21} color={colors.primary} />
           <Text style={[styles.actionLabel, { color: colors.text }]}>Anotar</Text>
         </Pressable>
-        <Pressable accessibilityLabel={saved ? 'Remover de ler depois' : 'Salvar para ler depois'}
+        <Pressable accessibilityLabel={saved ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
           onPress={() => void toggleSavedReading(reference)} style={styles.action}>
           <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={21} color={colors.primary} />
-          <Text style={[styles.actionLabel, { color: colors.text }]}>{saved ? 'Salvo' : 'Ler depois'}</Text>
+          <Text style={[styles.actionLabel, { color: colors.text }]}>{saved ? 'Favorito' : 'Favoritos'}</Text>
         </Pressable>
         <Pressable accessibilityLabel="Compartilhar texto" onPress={openShare} style={styles.action}>
           <Ionicons name="share-social-outline" size={21} color={colors.primary} />

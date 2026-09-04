@@ -1,12 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import type { ContentReference, LinkedNote, SavedReading } from '../types/library';
+import type { ContentReference, LinkedNote, NoteFolder, SavedReading } from '../types/library';
 
 const LIBRARY_KEY = '@veritas:study-library';
 
 type LibraryState = {
   notes: LinkedNote[];
+  folders: NoteFolder[];
   savedReadings: SavedReading[];
 };
 
@@ -14,12 +15,15 @@ type LibraryContextValue = LibraryState & {
   ready: boolean;
   addNote: (reference: ContentReference, body: string) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
+  createFolder: (name: string) => Promise<string | null>;
+  deleteFolder: (id: string) => Promise<void>;
+  moveNoteToFolder: (noteId: string, folderId?: string) => Promise<void>;
   toggleSavedReading: (reference: ContentReference) => Promise<void>;
   removeSavedReading: (id: string) => Promise<void>;
   isSaved: (referenceId: string) => boolean;
 };
 
-const initialState: LibraryState = { notes: [], savedReadings: [] };
+const initialState: LibraryState = { notes: [], folders: [], savedReadings: [] };
 const LibraryContext = createContext<LibraryContextValue | undefined>(undefined);
 
 function createId(prefix: string) {
@@ -34,7 +38,14 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     async function loadLibrary() {
       try {
         const stored = await AsyncStorage.getItem(LIBRARY_KEY);
-        if (stored) setLibrary(JSON.parse(stored) as LibraryState);
+        if (stored) {
+          const parsed = JSON.parse(stored) as Partial<LibraryState>;
+          setLibrary({
+            notes: Array.isArray(parsed.notes) ? parsed.notes : [],
+            folders: Array.isArray(parsed.folders) ? parsed.folders : [],
+            savedReadings: Array.isArray(parsed.savedReadings) ? parsed.savedReadings : [],
+          });
+        }
       } catch {
         setLibrary(initialState);
       } finally {
@@ -67,6 +78,34 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     await updateLibrary((current) => ({ ...current, notes: current.notes.filter((note) => note.id !== id) }));
   }, [updateLibrary]);
 
+  const createFolder = useCallback(async (name: string) => {
+    const cleanName = name.trim();
+    if (!cleanName) return null;
+    const id = createId('folder');
+    await updateLibrary((current) => ({
+      ...current,
+      folders: [...current.folders, { id, name: cleanName, createdAt: new Date().toISOString() }],
+    }));
+    return id;
+  }, [updateLibrary]);
+
+  const deleteFolder = useCallback(async (id: string) => {
+    await updateLibrary((current) => ({
+      ...current,
+      folders: current.folders.filter((folder) => folder.id !== id),
+      notes: current.notes.map((note) => note.folderId === id ? { ...note, folderId: undefined } : note),
+    }));
+  }, [updateLibrary]);
+
+  const moveNoteToFolder = useCallback(async (noteId: string, folderId?: string) => {
+    await updateLibrary((current) => ({
+      ...current,
+      notes: current.notes.map((note) => note.id === noteId
+        ? { ...note, folderId, updatedAt: new Date().toISOString() }
+        : note),
+    }));
+  }, [updateLibrary]);
+
   const toggleSavedReading = useCallback(async (reference: ContentReference) => {
     await updateLibrary((current) => {
       const existing = current.savedReadings.find((item) => item.reference.id === reference.id);
@@ -92,10 +131,13 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     ready,
     addNote,
     deleteNote,
+    createFolder,
+    deleteFolder,
+    moveNoteToFolder,
     toggleSavedReading,
     removeSavedReading,
     isSaved: (referenceId) => savedIds.has(referenceId),
-  }), [addNote, deleteNote, library, ready, removeSavedReading, savedIds, toggleSavedReading]);
+  }), [addNote, createFolder, deleteFolder, deleteNote, library, moveNoteToFolder, ready, removeSavedReading, savedIds, toggleSavedReading]);
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;
 }
