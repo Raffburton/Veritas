@@ -534,6 +534,10 @@ export function SettingsScreen() {
                     <Text style={[styles.paragraph, { color: colors.mutedText }]}>Um aplicativo católico para acompanhar a liturgia, ler a Palavra e registrar reflexões, com foco em simplicidade, acessibilidade e funcionamento offline.</Text>
                     <Text style={[styles.version, { color: colors.mutedText }]}>Versão {APP_VERSION}</Text>
                   </View>
+                  <Text style={[styles.aboutHistoryTitle, { color: colors.text }]}>Um pouco da minha história</Text>
+                  <Text style={[styles.aboutHistoryParagraph, { color: colors.mutedText }]}>Meu nome é Rafael e venho de uma família evangélica. Ao pesquisar e aprofundar meu entendimento da fé, tornei-me católico apostólico romano.</Text>
+                  <Text style={[styles.aboutHistoryParagraph, { color: colors.mutedText }]}>O Veritas nasceu de uma necessidade minha: encontrar um aplicativo de liturgia diária completo, que reunisse a Bíblia e um espaço para anotações, acompanhando meus momentos de leitura, estudo e oração.</Text>
+                  <Text style={[styles.aboutHistoryParagraph, { color: colors.mutedText }]}>É um app católico, feito para católicos. Acredito que esta seja uma forma de evangelizar o próximo e ajudar todos nessa caminhada da fé.</Text>
                 </View>
               ) : null}
 
@@ -850,6 +854,8 @@ const styles = StyleSheet.create({
   brand: { marginTop: 7, fontFamily: 'serif', fontSize: 34, fontWeight: '700' },
   tagline: { marginTop: 2, fontFamily: 'serif', fontSize: 14, fontWeight: '600' },
   paragraph: { marginTop: 15, fontSize: 14, lineHeight: 21, textAlign: 'center' },
+  aboutHistoryTitle: { marginTop: 24, fontSize: 18, fontWeight: '600' },
+  aboutHistoryParagraph: { marginTop: 12, fontSize: 14, lineHeight: 22 },
   version: { marginTop: 17, fontSize: 11, fontWeight: '700' },
   technologyList: { overflow: 'hidden' },
   technology: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54, borderBottomWidth: StyleSheet.hairlineWidth },
