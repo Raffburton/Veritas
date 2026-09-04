@@ -69,11 +69,11 @@ Além disso, o Veritas procura unir tecnologia e espiritualidade de maneira leve
 
 O arquivo APK compilado está disponível nos [releases do GitHub](https://github.com/raffburton/Veritas/releases).
 
-Consulte também as [notas da versão 1.1.8](./RELEASE_NOTES.md) para conhecer as novidades e melhorias mais recentes.
+Consulte também as [notas da versão 1.2.0](./RELEASE_NOTES.md) para conhecer as novidades e melhorias mais recentes.
 
 #### Como instalar:
 
-1. Baixe o arquivo `Veritas-v1.1.8.apk` do repositório
+1. Baixe o arquivo `Veritas-v1.2.0.apk` do repositório
 2. Ative **"Fontes desconhecidas"** nas configurações de segurança do Android
 3. Abra o arquivo baixado e toque em **"Instalar"**
 4. Pronto! O aplicativo está pronto para uso
@@ -87,9 +87,9 @@ Consulte também as [notas da versão 1.1.8](./RELEASE_NOTES.md) para conhecer a
 
 ## Tecnologias utilizadas
 
-- **React Native** 0.81.5 - Framework mobile multiplataforma
+- **React Native** 0.86.3 - Framework mobile multiplataforma
 - **Expo** ^57.0.0 - Plataforma de desenvolvimento
-- **TypeScript** ~5.9.2 - Tipagem estática
+- **TypeScript** ~6.0.3 - Tipagem estática
 - **React Navigation** 7.x - Navegação multi-tela
 - **AsyncStorage** 2.2.0 - Armazenamento local persistente
 - **Expo Notifications** - Sistema de notificações
@@ -184,7 +184,7 @@ Contribuições são bem-vindas. O projeto pode ser melhorado com:
 - **Projeto ID (EAS):** 45e37a48-c091-4f73-abdb-cfe1e03159e7
 - **Package Android:** com.raffburton.Veritas
 - **Slug:** Veritas
-- **Versão Atual:** 1.1.8
+- **Versão Atual:** 1.2.0
 
 ## Licença
 

@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
+import packageManifest from '../../package.json';
 import { SwipeDownDismiss } from '../components/SwipeDownDismiss';
 import {
   MAX_FONT_SIZE,
@@ -18,7 +19,22 @@ import { useNotifications, type NotificationPreference } from '../context/Notifi
 
 const PIX_KEY = 'e8d32269-fa6a-4d2f-8817-befb4accd685';
 const DIZIFY_WHATSAPP_URL = 'https://wa.me/message/QD7VZTT6QHTWE1';
-const APP_VERSION = Constants.expoConfig?.version ?? '1.1.8';
+const APP_VERSION = Constants.expoConfig?.version ?? packageManifest.version;
+
+function dependencyVersion(dependency: keyof typeof packageManifest.dependencies): string {
+  return packageManifest.dependencies[dependency].replace(/^[~^]/, '');
+}
+
+const EXPO_SDK_VERSION = dependencyVersion('expo').split('.')[0];
+const TECHNOLOGIES = [
+  `Expo SDK ${EXPO_SDK_VERSION} (${dependencyVersion('expo')})`,
+  `React Native ${dependencyVersion('react-native')}`,
+  `React ${dependencyVersion('react')}`,
+  `TypeScript ${packageManifest.devDependencies.typescript.replace(/^[~^]/, '')}`,
+  `React Navigation ${dependencyVersion('@react-navigation/native')}`,
+  `AsyncStorage ${dependencyVersion('@react-native-async-storage/async-storage')}`,
+  `Expo Notifications ${dependencyVersion('expo-notifications')}`,
+];
 
 type ChurchDonation = {
   id: string;
@@ -575,7 +591,7 @@ export function SettingsScreen() {
               {panel === 'technologies' ? (
                 <View>
                   <View style={styles.technologyList}>
-                    {['Expo SDK 54', 'React Native', 'TypeScript', 'React Navigation', 'AsyncStorage', 'Expo Notifications'].map((technology) => (
+                    {TECHNOLOGIES.map((technology) => (
                       <View key={technology} style={[styles.technology, { borderBottomColor: colors.border }]}> 
                         <Ionicons name="checkmark-circle-outline" size={21} color={colors.primary} />
                         <Text style={[styles.technologyText, { color: colors.text }]}>{technology}</Text>

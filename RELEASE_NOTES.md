@@ -1,4 +1,4 @@
-# Veritas — Versão 1.1.8
+# Veritas — Versão 1.2.0
 
 Esta versão traz uma experiência mais rápida, intuitiva e acolhedora, com melhorias de desempenho, navegação e interface alinhadas à identidade minimalista do Veritas.
 
