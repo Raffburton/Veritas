@@ -13,9 +13,10 @@ type LibraryState = {
 
 type LibraryContextValue = LibraryState & {
   ready: boolean;
-  addNote: (reference: ContentReference, body: string) => Promise<void>;
+  addNote: (reference: ContentReference, body: string, folderId?: string) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
   createFolder: (name: string) => Promise<string | null>;
+  updateFolder: (id: string, changes: Pick<NoteFolder, 'name' | 'color' | 'importance'>) => Promise<void>;
   deleteFolder: (id: string) => Promise<void>;
   moveNoteToFolder: (noteId: string, folderId?: string) => Promise<void>;
   toggleSavedReading: (reference: ContentReference) => Promise<void>;
@@ -64,13 +65,13 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     setLibrary(updater);
   }, []);
 
-  const addNote = useCallback(async (reference: ContentReference, body: string) => {
+  const addNote = useCallback(async (reference: ContentReference, body: string, folderId?: string) => {
     const cleanBody = body.trim();
     if (!cleanBody) return;
     const timestamp = new Date().toISOString();
     await updateLibrary((current) => ({
       ...current,
-      notes: [{ id: createId('note'), body: cleanBody, reference, createdAt: timestamp, updatedAt: timestamp }, ...current.notes],
+      notes: [{ id: createId('note'), body: cleanBody, reference, folderId, createdAt: timestamp, updatedAt: timestamp }, ...current.notes],
     }));
   }, [updateLibrary]);
 
@@ -94,6 +95,20 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
       ...current,
       folders: current.folders.filter((folder) => folder.id !== id),
       notes: current.notes.map((note) => note.folderId === id ? { ...note, folderId: undefined } : note),
+    }));
+  }, [updateLibrary]);
+
+  const updateFolder = useCallback(async (
+    id: string,
+    changes: Pick<NoteFolder, 'name' | 'color' | 'importance'>,
+  ) => {
+    const cleanName = changes.name.trim();
+    if (!cleanName) return;
+    await updateLibrary((current) => ({
+      ...current,
+      folders: current.folders.map((folder) => folder.id === id
+        ? { ...folder, ...changes, name: cleanName }
+        : folder),
     }));
   }, [updateLibrary]);
 
@@ -132,12 +147,13 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     addNote,
     deleteNote,
     createFolder,
+    updateFolder,
     deleteFolder,
     moveNoteToFolder,
     toggleSavedReading,
     removeSavedReading,
     isSaved: (referenceId) => savedIds.has(referenceId),
-  }), [addNote, createFolder, deleteFolder, deleteNote, library, moveNoteToFolder, ready, removeSavedReading, savedIds, toggleSavedReading]);
+  }), [addNote, createFolder, deleteFolder, deleteNote, library, moveNoteToFolder, ready, removeSavedReading, savedIds, toggleSavedReading, updateFolder]);
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;
 }

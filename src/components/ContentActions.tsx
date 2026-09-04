@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, ToastAndroid, View } from 'react-native';
 
 import { useLibrary } from '../context/LibraryContext';
 import { useTheme } from '../context/ThemeContext';
@@ -14,17 +14,20 @@ type ContentActionsProps = {
 
 export function ContentActions({ reference, shareText, shareOptions }: ContentActionsProps) {
   const { colors, fontSize } = useTheme();
-  const { addNote, toggleSavedReading, isSaved } = useLibrary();
+  const { addNote, folders, toggleSavedReading, isSaved } = useLibrary();
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteBody, setNoteBody] = useState('');
+  const [noteFolderId, setNoteFolderId] = useState<string | undefined>();
   const [shareOpen, setShareOpen] = useState(false);
   const [selectedShareOptions, setSelectedShareOptions] = useState<string[]>([]);
   const saved = isSaved(reference.id);
 
   async function saveNote() {
-    await addNote(reference, noteBody);
+    await addNote(reference, noteBody, noteFolderId);
     setNoteBody('');
+    setNoteFolderId(undefined);
     setNoteOpen(false);
+    ToastAndroid.show('Nota salva', ToastAndroid.SHORT);
   }
 
   function openShare() {
@@ -85,6 +88,24 @@ export function ContentActions({ reference, shareText, shareOptions }: ContentAc
               </Pressable>
             </View>
             <Text numberOfLines={3} style={[styles.excerpt, { color: colors.mutedText }]}>{reference.excerpt}</Text>
+            <Text style={[styles.folderPickerLabel, { color: colors.text }]}>Salvar em</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.folderPicker}>
+              {[{ id: undefined, name: 'Sem pasta' }, ...folders].map((folder) => {
+                const selected = noteFolderId === folder.id;
+                return (
+                  <Pressable
+                    key={folder.id ?? 'unfiled'}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    onPress={() => setNoteFolderId(folder.id)}
+                    style={[styles.folderChoice, { borderColor: selected ? colors.primary : colors.border, backgroundColor: selected ? `${colors.primary}18` : colors.background }]}
+                  >
+                    <Ionicons name={folder.id ? 'folder-outline' : 'file-tray-outline'} size={15} color={selected ? colors.primary : colors.mutedText} />
+                    <Text numberOfLines={1} style={[styles.folderChoiceText, { color: selected ? colors.primary : colors.text }]}>{folder.name}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
             <TextInput
               autoFocus
               multiline
@@ -161,6 +182,10 @@ const styles = StyleSheet.create({
   shareOptionText: { flex: 1, fontSize: 14, fontWeight: '600' },
   reference: { marginTop: 2, fontSize: 12, fontWeight: '800' },
   excerpt: { marginTop: 13, fontSize: 13, fontStyle: 'italic', lineHeight: 18 },
+  folderPickerLabel: { marginTop: 14, fontSize: 11, fontWeight: '800' },
+  folderPicker: { gap: 7, paddingTop: 8, paddingBottom: 2 },
+  folderChoice: { maxWidth: 145, minHeight: 35, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, borderWidth: 1, borderRadius: 18 },
+  folderChoiceText: { maxWidth: 105, fontSize: 11, fontWeight: '700' },
   input: { minHeight: 115, marginTop: 14, padding: 12, borderWidth: 1, borderRadius: 11, textAlignVertical: 'top' },
   saveButton: { alignItems: 'center', marginTop: 13, paddingVertical: 13, borderRadius: 10 },
   saveText: { fontSize: 14, fontWeight: '800' },

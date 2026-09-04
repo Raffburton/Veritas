@@ -28,6 +28,8 @@ export type LinkedNote = {
 export type NoteFolder = {
   id: string;
   name: string;
+  color?: string;
+  importance?: 'high' | 'normal' | 'low';
   createdAt: string;
 };
 
