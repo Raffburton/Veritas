@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^npx --yes eas-cli@23\\.2\\.0 --version$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
