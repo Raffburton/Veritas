@@ -1,11 +1,14 @@
-# Veritas - Versão 1.2.5
+# Veritas - Notas de Atualização v1.2.6
 
-## Novidades
+📖 Leitura & Liturgia
+Aprimoramento Visual da Liturgia: Otimização na leitura de telas e componentes dos versículos, incluindo o destaque visual em negrito na aba Liturgia para uma visualização mais clara.
 
-- Adicionada uma tela de novidades exibida uma única vez para cada nova versão instalada.
-- Melhorias de acessibilidade, leitura e navegação no aplicativo.
-- Aprimoramentos na experiência das coleções, orações e Bíblia.
+🎨 Visual & Desempenho (UI/UX)
+Suporte a Telas OLED: Implementação de fundo preto absoluto para economia de energia e melhor contraste.
 
-## Correções e melhorias
+Melhorias de Escala e Resolução: Ajustes na interface e na resolução geral para garantir uma boa exibição em diferentes dispositivos.
 
-- Ajustes de estabilidade e refinamentos visuais.
+Navegação Intuitiva (Beta): Adição da navegação por deslize lateral (swipe) para facilitar a transição entre telas.
+
+♿ Acessibilidade
+Modo Negrito: Nova opção de texto em negrito focada em acessibilidade e conforto visual.
