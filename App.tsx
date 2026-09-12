@@ -3,9 +3,10 @@ import { createNavigationContainerRef, NavigationContainer, TabActions } from '@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import packageManifest from './package.json';
 import { UpdateContext } from './src/context/UpdateContext';
-import { ActivityIndicator, Alert, Modal, PanResponder, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -197,20 +198,19 @@ export default function App() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadMessage, setDownloadMessage] = useState('');
-  const tabSwipeResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) => (
-        Math.abs(gesture.dx) > 12 && Math.abs(gesture.dx) > Math.abs(gesture.dy)
-      ),
-      onPanResponderRelease: (_, gesture) => {
-        const isSwipe = Math.abs(gesture.dx) >= TAB_SWIPE_DISTANCE
-          || Math.abs(gesture.vx) >= TAB_SWIPE_VELOCITY;
+  const tabSwipeGesture = useRef(
+    Gesture.Pan()
+      .runOnJS(true)
+      .activeOffsetX([-12, 12])
+      .failOffsetY([-24, 24])
+      .onEnd((gesture) => {
+        const isSwipe = Math.abs(gesture.translationX) >= TAB_SWIPE_DISTANCE
+          || Math.abs(gesture.velocityX) >= TAB_SWIPE_VELOCITY * 1000;
 
         if (isSwipe) {
-          changeTabFromSwipe(gesture.dx < 0 ? 1 : -1);
+          changeTabFromSwipe(gesture.translationX < 0 ? 1 : -1);
         }
-      },
-    }),
+      }),
   ).current;
 
   useEffect(() => {
@@ -418,36 +418,43 @@ export default function App() {
   }, [hasCompletedWelcome, installUpdate]);
 
   return (
-    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-      <ThemeProvider>
-        <ThemedStatusBar />
-        {hasCompletedWelcome === null ? (
-          <AppLoadingScreen />
-        ) : hasCompletedWelcome ? (
-          <LibraryProvider>
-            <NotificationProvider>
-              <DailyLiturgyProvider>
-                <UpdateContext.Provider value={{ latestVersion, isDownloading, installUpdate }}>
-                  <NavigationContainer ref={navigationRef}>
-                    <View style={styles.navigator} {...tabSwipeResponder.panHandlers}>
-                      <AppNavigator />
-                    </View>
-                  </NavigationContainer>
-                </UpdateContext.Provider>
-              </DailyLiturgyProvider>
-            </NotificationProvider>
-          </LibraryProvider>
-        ) : (
-          <WelcomeScreen onContinue={completeWelcome} />
-        )}
-        <DownloadModal visible={isDownloading} progress={downloadProgress} message={downloadMessage} />
-        <ReleaseNotesModal visible={isReleaseNotesVisible} onClose={closeReleaseNotes} />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <ThemeProvider>
+          <ThemedStatusBar />
+          {hasCompletedWelcome === null ? (
+            <AppLoadingScreen />
+          ) : hasCompletedWelcome ? (
+            <LibraryProvider>
+              <NotificationProvider>
+                <DailyLiturgyProvider>
+                  <UpdateContext.Provider value={{ latestVersion, isDownloading, installUpdate }}>
+                    <NavigationContainer ref={navigationRef}>
+                      <GestureDetector gesture={tabSwipeGesture}>
+                        <View style={styles.navigator}>
+                          <AppNavigator />
+                        </View>
+                      </GestureDetector>
+                    </NavigationContainer>
+                  </UpdateContext.Provider>
+                </DailyLiturgyProvider>
+              </NotificationProvider>
+            </LibraryProvider>
+          ) : (
+            <WelcomeScreen onContinue={completeWelcome} />
+          )}
+          <DownloadModal visible={isDownloading} progress={downloadProgress} message={downloadMessage} />
+          <ReleaseNotesModal visible={isReleaseNotesVisible} onClose={closeReleaseNotes} />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   appLoading: {
     flex: 1,
     alignItems: 'center',

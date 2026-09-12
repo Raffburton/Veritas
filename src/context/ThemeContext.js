@@ -27,7 +27,9 @@ export const THEME_COLORS = {
   },
   'dark-black': {
     background: '#000000',
-    surface: '#171717',
+    // Preto puro mantém os pixels desligados em painéis OLED. As bordas ainda
+    // separam cartões, diálogos e a barra de navegação sem criar superfícies cinza.
+    surface: '#000000',
     text: '#F5F5F5',
     mutedText: '#B8B8B8',
     primary: '#E8C75A',
