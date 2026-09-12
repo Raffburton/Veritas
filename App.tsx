@@ -3,8 +3,9 @@ import { createNavigationContainerRef, NavigationContainer, TabActions } from '@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
+import packageManifest from './package.json';
 import { UpdateContext } from './src/context/UpdateContext';
-import { ActivityIndicator, Alert, Modal, PanResponder, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, PanResponder, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -23,6 +24,7 @@ import {
 } from './src/services/updateChecker';
 
 const WELCOME_COMPLETED_KEY = '@veritas:welcome-completed';
+const RELEASE_NOTES_SEEN_VERSION_KEY = '@veritas:release-notes-seen-version';
 const INSTALL_PERMISSION_ASKED_KEY = '@veritas:install-permission-asked';
 const REMIND_LATER_KEY = 'veritas:update:remindLater';
 const REMINDER_TTL_MS = 24 * 60 * 60 * 1000;
@@ -31,6 +33,7 @@ const AUTO_RETRY_DELAY_MS = 30000;
 const TAB_ROUTES: (keyof RootTabParamList)[] = ['Liturgy', 'Bible', 'Notes', 'Prayers', 'Settings'];
 const TAB_SWIPE_DISTANCE = 56;
 const TAB_SWIPE_VELOCITY = 0.45;
+const APP_VERSION = Constants.expoConfig?.version ?? packageManifest.version;
 const navigationRef = createNavigationContainerRef<RootTabParamList>();
 
 function changeTabFromSwipe(direction: 1 | -1) {
@@ -96,6 +99,51 @@ function DownloadModal({ visible, progress, message }: DownloadModalProps) {
   );
 }
 
+type ReleaseNotesModalProps = {
+  visible: boolean;
+  onClose: () => void;
+};
+
+function ReleaseNotesModal({ visible, onClose }: ReleaseNotesModalProps) {
+  const { colors } = useTheme();
+
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalBackdrop}>
+        <View style={[styles.releaseNotesCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.releaseNotesEyebrow, { color: colors.primary }]}>VERITAS {APP_VERSION}</Text>
+          <Text style={[styles.releaseNotesTitle, { color: colors.text }]}>Novidades nesta atualização</Text>
+          <Text style={[styles.releaseNotesIntro, { color: colors.mutedText }]}>Confira as principais melhorias desta versão.</Text>
+
+          <View style={styles.releaseNotesList}>
+            <View style={styles.releaseNote}>
+              <Text style={[styles.releaseNoteBullet, { color: colors.primary }]}>•</Text>
+              <Text style={[styles.releaseNoteText, { color: colors.text }]}>Leitura e navegação mais acessíveis em todo o aplicativo.</Text>
+            </View>
+            <View style={styles.releaseNote}>
+              <Text style={[styles.releaseNoteBullet, { color: colors.primary }]}>•</Text>
+              <Text style={[styles.releaseNoteText, { color: colors.text }]}>Aprimoramentos na experiência das coleções, orações e Bíblia.</Text>
+            </View>
+            <View style={styles.releaseNote}>
+              <Text style={[styles.releaseNoteBullet, { color: colors.primary }]}>•</Text>
+              <Text style={[styles.releaseNoteText, { color: colors.text }]}>Ajustes de estabilidade e pequenos refinamentos visuais.</Text>
+            </View>
+          </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Entendi as novidades desta atualização"
+            onPress={onClose}
+            style={({ pressed }) => [styles.releaseNotesButton, { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 }]}
+          >
+            <Text style={styles.releaseNotesButtonText}>Entendi</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 function hasValidReminder(reminder: { version?: string; remindedAt?: number } | null, latestVersion: string): boolean {
   if (!reminder?.version || typeof reminder.remindedAt !== 'number') {
     return false;
@@ -143,6 +191,7 @@ function askForInstallPermission(): Promise<boolean> {
 
 export default function App() {
   const [hasCompletedWelcome, setHasCompletedWelcome] = useState<boolean | null>(null);
+  const [isReleaseNotesVisible, setIsReleaseNotesVisible] = useState(false);
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const installing = useRef(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -184,6 +233,31 @@ export default function App() {
     setHasCompletedWelcome(true);
     void AsyncStorage.setItem(WELCOME_COMPLETED_KEY, 'true').catch(() => undefined);
   };
+
+  useEffect(() => {
+    if (!hasCompletedWelcome) return;
+
+    let mounted = true;
+
+    void AsyncStorage.getItem(RELEASE_NOTES_SEEN_VERSION_KEY)
+      .then((seenVersion) => {
+        if (mounted && seenVersion !== APP_VERSION) {
+          setIsReleaseNotesVisible(true);
+        }
+      })
+      .catch(() => {
+        if (mounted) setIsReleaseNotesVisible(true);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [hasCompletedWelcome]);
+
+  const closeReleaseNotes = useCallback(() => {
+    setIsReleaseNotesVisible(false);
+    void AsyncStorage.setItem(RELEASE_NOTES_SEEN_VERSION_KEY, APP_VERSION).catch(() => undefined);
+  }, []);
 
   const installUpdate = useCallback(async () => {
     if (installing.current || Platform.OS !== 'android') return;
@@ -367,6 +441,7 @@ export default function App() {
           <WelcomeScreen onContinue={completeWelcome} />
         )}
         <DownloadModal visible={isDownloading} progress={downloadProgress} message={downloadMessage} />
+        <ReleaseNotesModal visible={isReleaseNotesVisible} onClose={closeReleaseNotes} />
       </ThemeProvider>
     </SafeAreaProvider>
   );
@@ -395,6 +470,59 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 24,
     alignItems: 'center',
+  },
+  releaseNotesCard: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 24,
+  },
+  releaseNotesEyebrow: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  releaseNotesTitle: {
+    marginTop: 8,
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  releaseNotesIntro: {
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  releaseNotesList: {
+    marginTop: 20,
+    gap: 14,
+  },
+  releaseNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  releaseNoteBullet: {
+    marginRight: 9,
+    fontSize: 20,
+    lineHeight: 20,
+    fontWeight: '800',
+  },
+  releaseNoteText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  releaseNotesButton: {
+    marginTop: 24,
+    minHeight: 46,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  releaseNotesButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   downloadTitle: {
     marginTop: 16,
