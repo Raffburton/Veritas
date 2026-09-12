@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   releaseNoteText: {
-    flex: 1,
+    marginTop: 2,
     fontSize: 14,
     lineHeight: 20,
   },

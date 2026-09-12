@@ -1,4 +1,4 @@
-# Veritas - Notas de Atualização v1.2.6
+# Veritas - Notas de Atualização v1.2.7
 
 📖 Leitura & Liturgia
 Aprimoramento Visual da Liturgia: Otimização na leitura de telas e componentes dos versículos, incluindo o destaque visual em negrito na aba Liturgia para uma visualização mais clara.
