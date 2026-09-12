@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUpdates } from '../context/UpdateContext';
@@ -41,8 +42,29 @@ export function AppNavigator() {
   return (
     <Tab.Navigator
       initialRouteName="Liturgy"
+      detachInactiveScreens={false}
       screenOptions={({ route }) => ({
         lazy: true,
+        animation: 'shift',
+        transitionSpec: {
+          animation: 'timing',
+          config: {
+            duration: 260,
+            easing: Easing.out(Easing.cubic),
+          },
+        },
+        sceneStyleInterpolator: ({ current }) => ({
+          sceneStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [-1, 0, 1],
+                  outputRange: [-36, 0, 36],
+                }),
+              },
+            ],
+          },
+        }),
         headerTitle: 'veritas',
         headerTitleAlign: 'center',
         headerStyle: { backgroundColor: colors.background },

@@ -1,17 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NavigationContainer } from '@react-navigation/native';
+import { createNavigationContainerRef, NavigationContainer, TabActions } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { UpdateContext } from './src/context/UpdateContext';
-import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, PanResponder, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LibraryProvider } from './src/context/LibraryContext';
 import { DailyLiturgyProvider } from './src/context/DailyLiturgyContext';
 import { initializeNotificationPermission, NotificationProvider } from './src/context/NotificationContext';
-import { AppNavigator } from './src/navigation/AppNavigator';
+import { AppNavigator, RootTabParamList } from './src/navigation/AppNavigator';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import {
   checkForUpdates,
@@ -27,6 +27,22 @@ const REMIND_LATER_KEY = 'veritas:update:remindLater';
 const REMINDER_TTL_MS = 24 * 60 * 60 * 1000;
 const REMINDER_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const AUTO_RETRY_DELAY_MS = 30000;
+const TAB_ROUTES: (keyof RootTabParamList)[] = ['Liturgy', 'Bible', 'Notes', 'Prayers', 'Settings'];
+const TAB_SWIPE_DISTANCE = 56;
+const TAB_SWIPE_VELOCITY = 0.45;
+const navigationRef = createNavigationContainerRef<RootTabParamList>();
+
+function changeTabFromSwipe(direction: 1 | -1) {
+  if (!navigationRef.isReady()) return;
+
+  const currentRoute = navigationRef.getCurrentRoute()?.name as keyof RootTabParamList | undefined;
+  const currentIndex = currentRoute ? TAB_ROUTES.indexOf(currentRoute) : -1;
+  const destination = TAB_ROUTES[currentIndex + direction];
+
+  if (destination) {
+    navigationRef.dispatch(TabActions.jumpTo(destination));
+  }
+}
 
 function ThemedStatusBar() {
   const { theme } = useTheme();
@@ -131,6 +147,21 @@ export default function App() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadMessage, setDownloadMessage] = useState('');
+  const tabSwipeResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gesture) => (
+        Math.abs(gesture.dx) > 12 && Math.abs(gesture.dx) > Math.abs(gesture.dy)
+      ),
+      onPanResponderRelease: (_, gesture) => {
+        const isSwipe = Math.abs(gesture.dx) >= TAB_SWIPE_DISTANCE
+          || Math.abs(gesture.vx) >= TAB_SWIPE_VELOCITY;
+
+        if (isSwipe) {
+          changeTabFromSwipe(gesture.dx < 0 ? 1 : -1);
+        }
+      },
+    }),
+  ).current;
 
   useEffect(() => {
     let mounted = true;
@@ -322,8 +353,10 @@ export default function App() {
             <NotificationProvider>
               <DailyLiturgyProvider>
                 <UpdateContext.Provider value={{ latestVersion, isDownloading, installUpdate }}>
-                  <NavigationContainer>
-                    <AppNavigator />
+                  <NavigationContainer ref={navigationRef}>
+                    <View style={styles.navigator} {...tabSwipeResponder.panHandlers}>
+                      <AppNavigator />
+                    </View>
                   </NavigationContainer>
                 </UpdateContext.Provider>
               </DailyLiturgyProvider>
@@ -343,6 +376,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  navigator: {
+    flex: 1,
   },
   modalBackdrop: {
     flex: 1,
