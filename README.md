@@ -203,7 +203,7 @@ Contribuições são bem-vindas. O projeto pode ser melhorado com:
 - **Projeto ID (EAS):** 45e37a48-c091-4f73-abdb-cfe1e03159e7
 - **Package Android:** com.raffburton.Veritas
 - **Slug:** Veritas
-- **Versão Atual:** 1.2.5
+- **Versão Atual:** 1.2.6
 
 ## Licença
 

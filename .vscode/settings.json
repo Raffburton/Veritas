@@ -3,6 +3,10 @@
         "/^npx --yes eas-cli@23\\.2\\.0 --version$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^npx tsc --noEmit$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

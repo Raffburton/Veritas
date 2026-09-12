@@ -2,13 +2,13 @@
   "expo": {
     "name": "Veritas",
     "slug": "Veritas",
-    "version": "1.2.5",
+    "version": "1.2.6",
     "orientation": "portrait",
     "icon": "./assets/veritas-icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "4"
+      "buildNumber": "5"
     },
     "android": {
       "adaptiveIcon": {
@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/veritas-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
-      "versionCode": 4,
+      "versionCode": 5,
       "package": "com.raffburton.Veritas",
       "permissions": [
         "WRITE_EXTERNAL_STORAGE",
