@@ -7,7 +7,7 @@ import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-g
 import packageManifest from './package.json';
 import { UpdateContext } from './src/context/UpdateContext';
 import { ActivityIndicator, Alert, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
-import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+import { SafeAreaProvider, initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LibraryProvider } from './src/context/LibraryContext';
@@ -80,11 +80,12 @@ type DownloadModalProps = {
 
 function DownloadModal({ visible, progress, message }: DownloadModalProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const safeProgress = Math.min(Math.max(progress, 0), 100);
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={() => undefined}>
-      <View style={styles.modalBackdrop}>
+      <View style={[styles.modalBackdrop, { paddingTop: Math.max(insets.top, 24), paddingBottom: Math.max(insets.bottom, 24) }]}>
         <View style={[styles.downloadCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={[styles.downloadTitle, { color: colors.text }]}>Atualizando o aplicativo</Text>
@@ -108,10 +109,11 @@ type ReleaseNotesModalProps = {
 
 function ReleaseNotesModal({ visible, onClose }: ReleaseNotesModalProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-      <View style={styles.modalBackdrop}>
+      <View style={[styles.modalBackdrop, { paddingTop: Math.max(insets.top, 24), paddingBottom: Math.max(insets.bottom, 24) }]}>
         <View style={[styles.releaseNotesCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.releaseNotesEyebrow, { color: colors.primary }]}>VERITAS {APP_VERSION}</Text>
           <Text style={[styles.releaseNotesTitle, { color: colors.text }]}>Novidades nesta atualização</Text>

@@ -6,6 +6,7 @@ import { AppState, Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Vie
 import { SwipeDownDismiss } from '../components/SwipeDownDismiss';
 import { AccessibleText as Text } from '../components/AccessibleText';
 import { useTheme } from '../context/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toLocalIsoDate } from '../services/liturgicalCalendarService';
 import { fetchVaticanSaint } from '../services/vaticanSaintService';
 
@@ -214,6 +215,7 @@ const PRAYER_GROUPS = [
 ];
 
 export function PrayersScreen() {
+  const insets = useSafeAreaInsets();
   const { colors, fontSize, boldText } = useTheme();
   const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
   const [today, setToday] = useState(() => toLocalIsoDate(new Date()));
@@ -374,7 +376,7 @@ export function PrayersScreen() {
           <SwipeDownDismiss
             key={selectedPrayer?.id ?? 'closed'}
             onDismiss={() => setSelectedPrayer(null)}
-            style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: Math.max(insets.bottom, 12) }]}
             dragArea={(
               <>
                 <View style={[styles.handle, { backgroundColor: colors.border }]} />

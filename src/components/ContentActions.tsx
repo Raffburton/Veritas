@@ -4,6 +4,7 @@ import { Modal, Pressable, ScrollView, Share, StyleSheet, ToastAndroid, View } f
 
 import { useLibrary } from '../context/LibraryContext';
 import { useTheme } from '../context/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccessibleText as Text, AccessibleTextInput as TextInput } from './AccessibleText';
 import type { ContentReference } from '../types/library';
 
@@ -14,6 +15,7 @@ type ContentActionsProps = {
 };
 
 export function ContentActions({ reference, shareText, shareOptions }: ContentActionsProps) {
+  const insets = useSafeAreaInsets();
   const { colors, fontSize, boldText } = useTheme();
   const { addNote, folders, toggleSavedReading, isSaved } = useLibrary();
   const [noteOpen, setNoteOpen] = useState(false);
@@ -76,7 +78,7 @@ export function ContentActions({ reference, shareText, shareOptions }: ContentAc
       </View>
 
       <Modal visible={noteOpen} transparent animationType="fade" onRequestClose={() => setNoteOpen(false)}>
-        <View style={styles.modalRoot}>
+        <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 22), paddingBottom: Math.max(insets.bottom, 22) }]}>
           <Pressable style={styles.backdrop} onPress={() => setNoteOpen(false)} />
           <View style={[styles.dialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.dialogHeader}>
@@ -125,7 +127,7 @@ export function ContentActions({ reference, shareText, shareOptions }: ContentAc
       </Modal>
 
       <Modal visible={shareOpen} transparent animationType="fade" onRequestClose={() => setShareOpen(false)}>
-        <View style={styles.modalRoot}>
+        <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 22), paddingBottom: Math.max(insets.bottom, 22) }]}>
           <Pressable style={styles.backdrop} onPress={() => setShareOpen(false)} />
           <View style={[styles.dialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.dialogHeader}>

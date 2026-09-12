@@ -7,6 +7,7 @@ import { BackHandler, FlatList, Modal, Pressable, ScrollView, Share, StyleSheet,
 import { useLibrary } from '../context/LibraryContext';
 import { AccessibleText as Text, AccessibleTextInput as TextInput } from '../components/AccessibleText';
 import { useTheme } from '../context/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootTabParamList } from '../navigation/AppNavigator';
 import type { ContentReference, LinkedNote, NoteFolder, SavedReading } from '../types/library';
 
@@ -33,6 +34,7 @@ function shareReference(reference: ContentReference, note?: string) {
 }
 
 export function NotesScreen() {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { colors, fontSize, boldText } = useTheme();
   const { notes, folders, savedReadings, ready, createFolder, updateFolder, deleteFolder, deleteNote, moveNoteToFolder, removeSavedReading } = useLibrary();
@@ -275,7 +277,7 @@ export function NotesScreen() {
       />
 
       <Modal visible={folderToEdit !== null} transparent animationType="fade" onRequestClose={() => setFolderToEdit(null)}>
-        <View style={styles.modalRoot}>
+        <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 23), paddingBottom: Math.max(insets.bottom, 23) }]}>
           <Pressable style={styles.backdrop} onPress={() => setFolderToEdit(null)} />
           <View style={[styles.folderEditor, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.editorHeader}>
@@ -338,7 +340,7 @@ export function NotesScreen() {
       </Modal>
 
       <Modal visible={folderToDelete !== null} transparent animationType="fade" onRequestClose={() => setFolderToDelete(null)}>
-        <View style={styles.modalRoot}><Pressable style={styles.backdrop} onPress={() => setFolderToDelete(null)} />
+        <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 23), paddingBottom: Math.max(insets.bottom, 23) }]}><Pressable style={styles.backdrop} onPress={() => setFolderToDelete(null)} />
           <View style={[styles.deleteDialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.deleteIcon}><Ionicons name="trash-outline" size={28} color="#C95B5B" /></View>
             <Text style={[styles.dialogTitle, { color: colors.text }]}>Excluir pasta?</Text>
@@ -352,7 +354,7 @@ export function NotesScreen() {
       </Modal>
 
       <Modal visible={folderModalOpen} transparent animationType="fade" onRequestClose={() => { setFolderModalOpen(false); setNoteToMoveIntoNewFolder(null); }}>
-        <View style={styles.modalRoot}><Pressable style={styles.backdrop} onPress={() => { setFolderModalOpen(false); setNoteToMoveIntoNewFolder(null); }} />
+        <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 23), paddingBottom: Math.max(insets.bottom, 23) }]}><Pressable style={styles.backdrop} onPress={() => { setFolderModalOpen(false); setNoteToMoveIntoNewFolder(null); }} />
           <View style={[styles.dialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={[styles.dialogIcon, { backgroundColor: `${colors.primary}18` }]}><Ionicons name="folder-open-outline" size={27} color={colors.primary} /></View>
             <Text style={[styles.dialogTitle, { color: colors.text }]}>Nova pasta</Text><Text style={[styles.dialogBody, { color: colors.mutedText }]}>Dê um nome para organizar suas reflexões.</Text>
@@ -363,7 +365,7 @@ export function NotesScreen() {
       </Modal>
 
       <Modal visible={moveTarget !== null} animationType="slide" onRequestClose={() => setMoveTarget(null)}>
-        <View style={[styles.sheetRoot, { backgroundColor: colors.background }]}>
+        <View style={[styles.sheetRoot, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 65), paddingBottom: insets.bottom }]}>
           <View style={styles.sheetHeader}><View style={styles.referenceText}><Text style={[styles.sheetTitle, { color: colors.text }]}>Mover nota</Text><Text style={[styles.sheetSubtitle, { color: colors.mutedText }]}>Escolha uma pasta</Text></View><Pressable accessibilityLabel="Fechar" onPress={() => setMoveTarget(null)}><Ionicons name="close-circle" size={29} color={colors.mutedText} /></Pressable></View>
           <ScrollView contentContainerStyle={styles.sheetList}>
             {([{ id: undefined, name: 'Sem pasta' }, ...sortedFolders] as Array<{ id?: string; name: string }>).map((folder) => {
@@ -376,7 +378,7 @@ export function NotesScreen() {
       </Modal>
 
       <Modal visible={deleteTarget !== null} transparent animationType="fade" onRequestClose={() => setDeleteTarget(null)}>
-        <View style={styles.modalRoot}><Pressable style={styles.backdrop} onPress={() => setDeleteTarget(null)} />
+        <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 23), paddingBottom: Math.max(insets.bottom, 23) }]}><Pressable style={styles.backdrop} onPress={() => setDeleteTarget(null)} />
           <View style={[styles.deleteDialog, { backgroundColor: colors.surface, borderColor: colors.border }]}><View style={styles.deleteIcon}><Ionicons name="trash-outline" size={28} color="#C95B5B" /></View><Text style={[styles.dialogTitle, { color: colors.text }]}>{deleteTarget?.section === 'notes' ? 'Excluir nota?' : 'Remover dos favoritos?'}</Text><Text style={[styles.dialogBody, { color: colors.mutedText }]}>Esta ação não poderá ser desfeita.</Text><View style={styles.dialogActions}><Pressable onPress={() => setDeleteTarget(null)} style={[styles.dialogButton, { borderColor: colors.border }]}><Text style={[styles.secondaryButtonText, { color: colors.text }]}>Cancelar</Text></Pressable><Pressable onPress={deleteSelectedItem} style={[styles.dialogButton, styles.deleteButton]}><Text style={styles.deleteButtonText}>Excluir</Text></Pressable></View></View>
         </View>
       </Modal>

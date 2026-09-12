@@ -3,6 +3,7 @@ import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUpdates } from '../context/UpdateContext';
 
@@ -164,6 +165,7 @@ function SettingsRow({ icon, title, description, onPress, colors, prayerIcon, la
 }
 
 export function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const {
     colors,
     theme,
@@ -354,7 +356,7 @@ export function SettingsScreen() {
           <SwipeDownDismiss
             key={panel ?? 'closed'}
             onDismiss={closePanel}
-            style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            style={[styles.sheet, { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: Math.max(insets.bottom, 12) }]}
             dragArea={(
               <>
                 <View style={[styles.handle, { backgroundColor: colors.border }]} />
