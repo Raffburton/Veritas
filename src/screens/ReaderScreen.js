@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Linking, PanResponder, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Animated, Linking, PanResponder, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
 import { AccessibleText as Text } from '../components/AccessibleText';
@@ -71,6 +71,8 @@ function ReadingCard({ heading, readings, colors, fontSize, boldText }) {
 
 export function ReaderScreen({ route }) {
   const { colors, theme, fontSize, boldText, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const dayButtonWidth = Math.max(1, (windowWidth - 36 - 24) / 4);
   const daySelectorRef = useRef(null);
   const dayLayouts = useRef(new Map());
   const daySelectorViewportWidth = useRef(0);
@@ -286,7 +288,7 @@ export function ReaderScreen({ route }) {
                   dayLayouts.current.set(day.date, event.nativeEvent.layout);
                   if (selected) positionSelectedDay(day.date);
                 }}
-                onPress={() => setSelectedDate(day.date)} style={[styles.dayButton, {
+                onPress={() => setSelectedDate(day.date)} style={[styles.dayButton, { width: dayButtonWidth,
                   backgroundColor: selected ? colors.primary : colors.surface,
                   borderColor: selected ? colors.primary : colors.border,
                 }]}>
@@ -384,7 +386,7 @@ const styles = StyleSheet.create({
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   screenTitle: { marginBottom: 16, fontFamily: 'serif', fontWeight: '700' },
   daySelector: { gap: 8, paddingBottom: 20 },
-  dayButton: { minWidth: 76, alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderRadius: 12 },
+  dayButton: { alignItems: 'center', paddingHorizontal: 8, paddingVertical: 10, borderWidth: 1, borderRadius: 12 },
   dayButtonText: { marginBottom: 2, fontWeight: '600', textTransform: 'capitalize' },
   dayHeader: { marginBottom: 14 }, dayTitle: { fontFamily: 'serif', fontWeight: '700' },
   dayMetadata: { marginTop: 5, textTransform: 'capitalize' },
