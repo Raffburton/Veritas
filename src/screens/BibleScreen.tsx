@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BackHandler, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
+import { AccessibleText as Text, AccessibleTextInput as TextInput } from '../components/AccessibleText';
 import { useTheme } from '../context/ThemeContext';
 import type { RootTabParamList } from '../navigation/AppNavigator';
 import { bibleBooks, getBibleBook, getBibleChapter } from '../services/bibleService';

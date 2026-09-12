@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+
+import { AccessibleText as Text } from '../components/AccessibleText';
 
 export function HomeScreen() {
   return (

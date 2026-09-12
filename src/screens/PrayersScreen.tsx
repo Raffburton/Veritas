@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { AppState, Linking, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { AppState, Linking, Modal, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 
 import { SwipeDownDismiss } from '../components/SwipeDownDismiss';
+import { AccessibleText as Text } from '../components/AccessibleText';
 import { useTheme } from '../context/ThemeContext';
 import { toLocalIsoDate } from '../services/liturgicalCalendarService';
 import { fetchVaticanSaint } from '../services/vaticanSaintService';

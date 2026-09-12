@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Linking, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Linking, PanResponder, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
+import { AccessibleText as Text } from '../components/AccessibleText';
 import { useDailyLiturgy } from '../context/DailyLiturgyContext';
 import { useTheme } from '../context/ThemeContext';
 import {

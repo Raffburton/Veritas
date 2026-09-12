@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '../context/ThemeContext';
+import { AccessibleText as Text } from '../components/AccessibleText';
 
 type WelcomeScreenProps = {
   onContinue: () => void;

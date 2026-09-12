@@ -35,7 +35,7 @@ const icons: Record<
 };
 
 export function AppNavigator() {
-  const { colors } = useTheme();
+  const { colors, boldText } = useTheme();
   const { latestVersion } = useUpdates();
   const insets = useSafeAreaInsets();
 
@@ -86,7 +86,7 @@ export function AppNavigator() {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: boldText ? '700' : '600' },
         tabBarIcon: ({ color, focused, size }) =>
           route.name === 'Prayers' ? (
             <MaterialCommunityIcons name="hands-pray" color={color} size={size} />

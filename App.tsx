@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { UpdateContext } from './src/context/UpdateContext';
-import { ActivityIndicator, Alert, Modal, PanResponder, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, PanResponder, Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -12,6 +12,7 @@ import { LibraryProvider } from './src/context/LibraryContext';
 import { DailyLiturgyProvider } from './src/context/DailyLiturgyContext';
 import { initializeNotificationPermission, NotificationProvider } from './src/context/NotificationContext';
 import { AppNavigator, RootTabParamList } from './src/navigation/AppNavigator';
+import { AccessibleText as Text } from './src/components/AccessibleText';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import {
   checkForUpdates,

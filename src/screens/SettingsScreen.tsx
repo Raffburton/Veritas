@@ -2,12 +2,13 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { useState } from 'react';
-import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { useUpdates } from '../context/UpdateContext';
 
 import packageManifest from '../../package.json';
 import { SwipeDownDismiss } from '../components/SwipeDownDismiss';
+import { AccessibleText as Text } from '../components/AccessibleText';
 import {
   MAX_FONT_SIZE,
   MIN_FONT_SIZE,

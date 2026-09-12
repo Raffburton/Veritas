@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useFocusEffect, useNavigation, usePreventRemove } from '@react-navigation/native';
 import { useCallback, useMemo, useState } from 'react';
-import { BackHandler, FlatList, Modal, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BackHandler, FlatList, Modal, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 
 import { useLibrary } from '../context/LibraryContext';
+import { AccessibleText as Text, AccessibleTextInput as TextInput } from '../components/AccessibleText';
 import { useTheme } from '../context/ThemeContext';
 import type { RootTabParamList } from '../navigation/AppNavigator';
 import type { ContentReference, LinkedNote, NoteFolder, SavedReading } from '../types/library';

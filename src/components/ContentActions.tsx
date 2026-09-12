@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, ToastAndroid, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Share, StyleSheet, ToastAndroid, View } from 'react-native';
 
 import { useLibrary } from '../context/LibraryContext';
 import { useTheme } from '../context/ThemeContext';
+import { AccessibleText as Text, AccessibleTextInput as TextInput } from './AccessibleText';
 import type { ContentReference } from '../types/library';
 
 type ContentActionsProps = {
