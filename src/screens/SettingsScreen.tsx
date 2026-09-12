@@ -167,7 +167,9 @@ export function SettingsScreen() {
     colors,
     theme,
     fontSize,
+    boldText,
     setTheme,
+    setBoldText,
     increaseFontSize,
     decreaseFontSize,
   } = useTheme();
@@ -368,8 +370,9 @@ export function SettingsScreen() {
           >
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sheetContent}>
               {panel === 'theme' ? (
-                <View style={styles.themeGrid}>
-                  {THEME_OPTIONS.map((option: AppTheme) => {
+                <>
+                  <View style={styles.themeGrid}>
+                    {THEME_OPTIONS.map((option: AppTheme) => {
                     const active = option === theme;
                     const preview = THEME_COLORS[option];
                     return (
@@ -400,8 +403,25 @@ export function SettingsScreen() {
                         </View>
                       </Pressable>
                     );
-                  })}
-                </View>
+                    })}
+                  </View>
+                  <View style={[styles.boldTextOption, { borderColor: colors.border }]}>
+                    <View style={styles.boldTextCopy}>
+                      <Text style={[styles.boldTextTitle, { color: colors.text }]}>Texto em negrito</Text>
+                      <Text style={[styles.boldTextDescription, { color: colors.mutedText }]}>Aumenta o destaque dos textos de leitura.</Text>
+                    </View>
+                    <Switch
+                      accessibilityLabel="Texto em negrito"
+                      accessibilityHint="Ativa ou desativa o negrito nos textos de leitura"
+                      accessibilityRole="switch"
+                      accessibilityState={{ checked: boldText }}
+                      value={boldText}
+                      onValueChange={setBoldText}
+                      trackColor={{ false: colors.border, true: colors.primary }}
+                      thumbColor={boldText ? colors.surface : colors.mutedText}
+                    />
+                  </View>
+                </>
               ) : null}
 
               {panel === 'font' ? (
@@ -839,6 +859,8 @@ const styles = StyleSheet.create({
   previewLineShort: { width: '48%', height: 4, borderRadius: 2 },
   themeFooter: { flexDirection: 'row', alignItems: 'center', marginTop: 11 },
   themeName: { flex: 1, fontSize: 14, fontWeight: '700' },
+  boldTextOption: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 18, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth },
+  boldTextCopy: { flex: 1 }, boldTextTitle: { fontSize: 15, fontWeight: '700' }, boldTextDescription: { marginTop: 3, fontSize: 12, lineHeight: 17 },
   fontPreviewCard: { minHeight: 150, alignItems: 'center', justifyContent: 'center', padding: 20, borderWidth: 1, borderRadius: 14 },
   fontSample: { fontFamily: 'serif', textAlign: 'center' },
   fontControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24, marginTop: 20 },

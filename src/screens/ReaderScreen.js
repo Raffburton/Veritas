@@ -13,6 +13,25 @@ import { getLiturgicalDayDisplayTitle } from '../services/liturgicalDisplayServi
 
 const WEEKDAYS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
 const HIDDEN_CONTROLS_OFFSET = 162;
+const VERSE_MARKER_PATTERN = /(\d{1,3})(?=[A-Za-zÀ-ÖØ-öø-ÿ])/g;
+
+// A fonte da liturgia pode enviar o número do versículo unido à primeira palavra
+// (por exemplo, "14Meus"). Separa-os para tornar a leitura mais clara.
+function formatVerseMarkers(text) {
+  return typeof text === 'string'
+    ? text.replace(VERSE_MARKER_PATTERN, '$1 ')
+    : text;
+}
+
+function renderVerseText(text) {
+  if (typeof text !== 'string') return text;
+
+  return text.split(VERSE_MARKER_PATTERN).map((part, index) => (
+    index % 2 === 1
+      ? <Text key={`${part}-${index}`} style={styles.verseMarker}>{part} </Text>
+      : part
+  ));
+}
 
 function dateFromIso(isoDate) {
   const [year, month, day] = isoDate.split('-').map(Number);
@@ -26,13 +45,13 @@ function readingShareBlock(label, readings) {
     ...readings.flatMap((reading) => [
       [reading.reference, reading.title].filter(Boolean).join(' — '),
       reading.response,
-      reading.text,
+      formatVerseMarkers(reading.text),
       '',
     ].filter((line) => line !== undefined && line !== null)),
   ];
 }
 
-function ReadingCard({ heading, readings, colors, fontSize }) {
+function ReadingCard({ heading, readings, colors, fontSize, boldText }) {
   if (!readings.length) return null;
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -40,9 +59,9 @@ function ReadingCard({ heading, readings, colors, fontSize }) {
       {readings.map((reading, index) => (
         <View key={`${reading.reference}-${index}`} style={index > 0 ? styles.additionalReading : undefined}>
           {reading.reference ? <Text style={[styles.reference, { color: colors.text, fontSize: fontSize + 2 }]}>{reading.reference}</Text> : null}
-          {reading.title ? <Text style={[styles.readingTitle, { color: colors.mutedText, fontSize }]}>{reading.title}</Text> : null}
-          {reading.response ? <Text style={[styles.response, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.5) }]}>{reading.response}</Text> : null}
-          {reading.text ? <Text style={[styles.readingText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.62) }]}>{reading.text}</Text> : null}
+          {reading.title ? <Text style={[styles.readingTitle, { color: colors.mutedText, fontSize, fontWeight: boldText ? '700' : '400' }]}>{reading.title}</Text> : null}
+          {reading.response ? <Text style={[styles.response, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.5), fontWeight: boldText ? '700' : '400' }]}>{reading.response}</Text> : null}
+          {reading.text ? <Text style={[styles.readingText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.62), fontWeight: boldText ? '700' : '400' }]}>{renderVerseText(reading.text)}</Text> : null}
         </View>
       ))}
     </View>
@@ -50,7 +69,7 @@ function ReadingCard({ heading, readings, colors, fontSize }) {
 }
 
 export function ReaderScreen({ route }) {
-  const { colors, theme, fontSize, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
+  const { colors, theme, fontSize, boldText, toggleTheme, increaseFontSize, decreaseFontSize } = useTheme();
   const daySelectorRef = useRef(null);
   const dayLayouts = useRef(new Map());
   const daySelectorViewportWidth = useRef(0);
@@ -287,15 +306,15 @@ export function ReaderScreen({ route }) {
         </View>
 
         <ContentActions reference={liturgyReference} shareText={shareText} shareOptions={shareOptions} />
-        <ReadingCard heading="Primeira leitura" readings={selectedLiturgy.readings.firstReading} colors={colors} fontSize={fontSize} />
-        <ReadingCard heading="Salmo responsorial" readings={selectedLiturgy.readings.psalm} colors={colors} fontSize={fontSize} />
-        <ReadingCard heading="Segunda leitura" readings={selectedLiturgy.readings.secondReading} colors={colors} fontSize={fontSize} />
-        <ReadingCard heading="Evangelho" readings={selectedLiturgy.readings.gospel} colors={colors} fontSize={fontSize} />
+        <ReadingCard heading="Primeira leitura" readings={selectedLiturgy.readings.firstReading} colors={colors} fontSize={fontSize} boldText={boldText} />
+        <ReadingCard heading="Salmo responsorial" readings={selectedLiturgy.readings.psalm} colors={colors} fontSize={fontSize} boldText={boldText} />
+        <ReadingCard heading="Segunda leitura" readings={selectedLiturgy.readings.secondReading} colors={colors} fontSize={fontSize} boldText={boldText} />
+        <ReadingCard heading="Evangelho" readings={selectedLiturgy.readings.gospel} colors={colors} fontSize={fontSize} boldText={boldText} />
         <View style={[styles.card, styles.papalWordsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionHeading, { color: colors.primary, fontSize: Math.max(fontSize - 2, 12) }]}>Palavras do Papa</Text>
           {selectedPapalWords ? (
             <>
-              <Text style={[styles.papalWordsText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.62) }]}>
+              <Text style={[styles.papalWordsText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.62), fontWeight: boldText ? '700' : '400' }]}>
                 {selectedPapalWords.text}
               </Text>
               <Pressable
@@ -317,7 +336,7 @@ export function ReaderScreen({ route }) {
             </Text>
           )}
         </View>
-        <ReadingCard heading="Leituras adicionais" readings={selectedLiturgy.readings.extras} colors={colors} fontSize={fontSize} />
+        <ReadingCard heading="Leituras adicionais" readings={selectedLiturgy.readings.extras} colors={colors} fontSize={fontSize} boldText={boldText} />
 
         <Text style={[styles.sourceNotice, { color: colors.mutedText }]}>
           Calendário {metadata.year} para {metadata.region}. Celebrações próprias podem variar conforme a diocese.
@@ -373,6 +392,7 @@ const styles = StyleSheet.create({
   reference: { marginBottom: 5, fontWeight: '700' }, readingTitle: { lineHeight: 22 },
   response: { marginTop: 9, fontFamily: 'serif', fontStyle: 'italic' },
   readingText: { marginTop: 13, fontFamily: 'serif' },
+  verseMarker: { fontWeight: '700' },
   papalWordsCard: { borderLeftWidth: 4 },
   papalWordsText: { fontFamily: 'serif' },
   papalWordsStatus: { fontSize: 13, fontStyle: 'italic' },

@@ -55,6 +55,7 @@ const THEME_PREFERENCES_KEY = '@veritas:theme-preferences';
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(DEFAULT_THEME);
   const [fontSize, setFontSizeState] = useState(DEFAULT_FONT_SIZE);
+  const [boldText, setBoldTextState] = useState(false);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   useEffect(() => {
@@ -67,6 +68,7 @@ export function ThemeProvider({ children }) {
           if (Number.isFinite(preferences.fontSize)) {
             setFontSizeState(Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, preferences.fontSize)));
           }
+          if (typeof preferences.boldText === 'boolean') setBoldTextState(preferences.boldText);
         }
       } catch {
         // Mantém os valores padrão se as preferências locais estiverem corrompidas.
@@ -81,9 +83,9 @@ export function ThemeProvider({ children }) {
     if (!preferencesLoaded) return;
     void AsyncStorage.setItem(
       THEME_PREFERENCES_KEY,
-      JSON.stringify({ theme, fontSize }),
+      JSON.stringify({ theme, fontSize, boldText }),
     ).catch(() => undefined);
-  }, [fontSize, preferencesLoaded, theme]);
+  }, [boldText, fontSize, preferencesLoaded, theme]);
 
   const setTheme = useCallback((nextTheme) => {
     if (!THEME_OPTIONS.includes(nextTheme)) {
@@ -122,6 +124,10 @@ export function ThemeProvider({ children }) {
     );
   }, []);
 
+  const setBoldText = useCallback((enabled) => {
+    setBoldTextState(Boolean(enabled));
+  }, []);
+
   const value = useMemo(
     () => ({
       theme,
@@ -132,6 +138,8 @@ export function ThemeProvider({ children }) {
       setFontSize,
       increaseFontSize,
       decreaseFontSize,
+      boldText,
+      setBoldText,
     }),
     [
       theme,
@@ -141,6 +149,8 @@ export function ThemeProvider({ children }) {
       setFontSize,
       increaseFontSize,
       decreaseFontSize,
+      boldText,
+      setBoldText,
     ],
   );
 

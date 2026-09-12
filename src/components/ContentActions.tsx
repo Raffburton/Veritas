@@ -13,7 +13,7 @@ type ContentActionsProps = {
 };
 
 export function ContentActions({ reference, shareText, shareOptions }: ContentActionsProps) {
-  const { colors, fontSize } = useTheme();
+  const { colors, fontSize, boldText } = useTheme();
   const { addNote, folders, toggleSavedReading, isSaved } = useLibrary();
   const [noteOpen, setNoteOpen] = useState(false);
   const [noteBody, setNoteBody] = useState('');
@@ -113,7 +113,7 @@ export function ContentActions({ reference, shareText, shareOptions }: ContentAc
               placeholderTextColor={colors.mutedText}
               value={noteBody}
               onChangeText={setNoteBody}
-              style={[styles.input, { color: colors.text, borderColor: colors.border, fontSize }]}
+              style={[styles.input, { color: colors.text, borderColor: colors.border, fontSize, fontWeight: boldText ? '700' : '400' }]}
             />
             <Pressable disabled={!noteBody.trim()} onPress={() => void saveNote()}
               style={[styles.saveButton, { backgroundColor: colors.primary, opacity: noteBody.trim() ? 1 : 0.4 }]}>

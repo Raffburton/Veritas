@@ -32,6 +32,8 @@ export type ThemeContextValue = {
   setFontSize: (fontSize: number) => void;
   increaseFontSize: () => void;
   decreaseFontSize: () => void;
+  boldText: boolean;
+  setBoldText: (enabled: boolean) => void;
 };
 
 export type ThemeProviderProps = {

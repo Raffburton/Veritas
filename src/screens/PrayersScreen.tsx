@@ -213,7 +213,7 @@ const PRAYER_GROUPS = [
 ];
 
 export function PrayersScreen() {
-  const { colors, fontSize } = useTheme();
+  const { colors, fontSize, boldText } = useTheme();
   const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
   const [today, setToday] = useState(() => toLocalIsoDate(new Date()));
   const [saintName, setSaintName] = useState('Carregando santo do dia…');
@@ -420,6 +420,7 @@ export function PrayersScreen() {
                       color: index === selectedPrayer.paragraphs.length - 1 ? colors.primary : colors.text,
                       fontSize,
                       lineHeight: Math.round(fontSize * 1.65),
+                      fontWeight: boldText ? '700' : '400',
                     },
                   ]}
                 >

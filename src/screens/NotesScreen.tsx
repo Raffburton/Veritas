@@ -33,7 +33,7 @@ function shareReference(reference: ContentReference, note?: string) {
 
 export function NotesScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
-  const { colors, fontSize } = useTheme();
+  const { colors, fontSize, boldText } = useTheme();
   const { notes, folders, savedReadings, ready, createFolder, updateFolder, deleteFolder, deleteNote, moveNoteToFolder, removeSavedReading } = useLibrary();
   const [section, setSection] = useState<Section>('notes');
   const [folderFilter, setFolderFilter] = useState<FolderFilter>('root');
@@ -239,7 +239,7 @@ export function NotesScreen() {
                 <View style={styles.favoriteContent}>
                   <Text style={[styles.cardMeta, { color: colors.primary }]}>{sourceLabel(reference)} · {reference.location}</Text>
                   <Text style={[styles.cardTitle, { color: colors.text }]}>{reference.title}</Text>
-                  <Text numberOfLines={3} style={[styles.excerpt, { color: colors.mutedText, fontSize: Math.max(fontSize - 2, 12) }]}>{reference.excerpt}</Text>
+                  <Text numberOfLines={3} style={[styles.excerpt, { color: colors.mutedText, fontSize: Math.max(fontSize - 2, 12), fontWeight: boldText ? '700' : '400' }]}>{reference.excerpt}</Text>
                   <Text style={[styles.openHint, { color: colors.primary }]}>Abrir texto  →</Text>
                 </View>
                 <Pressable accessibilityLabel="Remover dos favoritos" hitSlop={9} onPress={(event) => { event.stopPropagation(); setDeleteTarget({ item, section }); }}><Ionicons name="close" size={21} color={colors.mutedText} /></Pressable>
@@ -257,13 +257,13 @@ export function NotesScreen() {
                 </View>
               </View>
               {folder ? <View style={[styles.folderLabel, { backgroundColor: `${folder.color ?? colors.primary}16` }]}><Ionicons name="folder" size={13} color={folder.color ?? colors.primary} /><Text style={[styles.folderLabelText, { color: folder.color ?? colors.primary }]}>{folder.name}</Text></View> : null}
-              <Text style={[styles.noteBody, { color: colors.text, fontSize }]}>{note.body}</Text>
+              <Text style={[styles.noteBody, { color: colors.text, fontSize, fontWeight: boldText ? '700' : '400' }]}>{note.body}</Text>
               <Pressable accessibilityRole="link" onPress={() => openReference(reference)} style={({ pressed }) => [styles.referenceButton, { backgroundColor: colors.background, borderColor: colors.border }, pressed && styles.pressed]}>
                 <View style={[styles.referenceIcon, { backgroundColor: `${colors.primary}18` }]}><Ionicons name={reference.source === 'bible' ? 'book-outline' : 'calendar-outline'} size={17} color={colors.primary} /></View>
                 <View style={styles.referenceText}>
                   <Text style={[styles.cardMeta, { color: colors.primary }]}>{sourceLabel(reference)} · {reference.location}</Text>
                   <Text numberOfLines={1} style={[styles.referenceTitle, { color: colors.text }]}>{reference.title}</Text>
-                  <Text numberOfLines={3} style={[styles.linkedExcerpt, { color: colors.mutedText, fontSize: Math.max(fontSize - 3, 11) }]}>{reference.excerpt}</Text>
+                  <Text numberOfLines={3} style={[styles.linkedExcerpt, { color: colors.mutedText, fontSize: Math.max(fontSize - 3, 11), fontWeight: boldText ? '700' : '400' }]}>{reference.excerpt}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={colors.mutedText} />
               </Pressable>

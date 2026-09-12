@@ -97,7 +97,7 @@ function verseViewPosition(index: number, verseCount: number) {
 }
 
 export function BibleScreen({ route, navigation }: Props) {
-  const { colors, fontSize } = useTheme();
+  const { colors, fontSize, boldText } = useTheme();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('Todos');
   const [bookIndex, setBookIndex] = useState<number | null>(route.params?.bookIndex ?? null);
@@ -300,7 +300,7 @@ export function BibleScreen({ route, navigation }: Props) {
                   selected && { backgroundColor: colors.surface, borderLeftColor: colors.primary },
                 ]}>
                 <Text style={[styles.verseNumber, { color: colors.primary, fontSize: Math.max(fontSize - 4, 11) }]}>{verse.numero}</Text>
-                <Text style={[styles.verseText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.65) }]}>{verse.texto}</Text>
+                <Text style={[styles.verseText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.65), fontWeight: boldText ? '700' : '400' }]}>{verse.texto}</Text>
               </Pressable>
             );
           }}
