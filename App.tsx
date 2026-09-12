@@ -16,6 +16,7 @@ import { initializeNotificationPermission, NotificationProvider } from './src/co
 import { AppNavigator, RootTabParamList } from './src/navigation/AppNavigator';
 import { AccessibleText as Text } from './src/components/AccessibleText';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
+import { releaseNoteSections } from './src/data/releaseNotes';
 import {
   checkForUpdates,
   downloadLatestApk,
@@ -117,18 +118,15 @@ function ReleaseNotesModal({ visible, onClose }: ReleaseNotesModalProps) {
           <Text style={[styles.releaseNotesIntro, { color: colors.mutedText }]}>Confira as principais melhorias desta versão.</Text>
 
           <View style={styles.releaseNotesList}>
-            <View style={styles.releaseNote}>
-              <Text style={[styles.releaseNoteBullet, { color: colors.primary }]}>•</Text>
-              <Text style={[styles.releaseNoteText, { color: colors.text }]}>Leitura e navegação mais acessíveis em todo o aplicativo.</Text>
-            </View>
-            <View style={styles.releaseNote}>
-              <Text style={[styles.releaseNoteBullet, { color: colors.primary }]}>•</Text>
-              <Text style={[styles.releaseNoteText, { color: colors.text }]}>Aprimoramentos na experiência das coleções, orações e Bíblia.</Text>
-            </View>
-            <View style={styles.releaseNote}>
-              <Text style={[styles.releaseNoteBullet, { color: colors.primary }]}>•</Text>
-              <Text style={[styles.releaseNoteText, { color: colors.text }]}>Ajustes de estabilidade e pequenos refinamentos visuais.</Text>
-            </View>
+            {releaseNoteSections.map((section) => (
+              <View key={section.title} style={styles.releaseNote}>
+                <Text style={[styles.releaseNoteBullet, { color: colors.primary }]}>•</Text>
+                <View style={styles.releaseNoteContent}>
+                  <Text style={[styles.releaseNoteHeading, { color: colors.text }]}>{section.title}</Text>
+                  <Text style={[styles.releaseNoteText, { color: colors.text }]}>{section.description}</Text>
+                </View>
+              </View>
+            ))}
           </View>
 
           <Pressable
@@ -508,11 +506,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
+  releaseNoteContent: {
+    flex: 1,
+  },
   releaseNoteBullet: {
     marginRight: 9,
     fontSize: 20,
     lineHeight: 20,
     fontWeight: '800',
+  },
+  releaseNoteHeading: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '700',
   },
   releaseNoteText: {
     flex: 1,
