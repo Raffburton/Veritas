@@ -5,7 +5,7 @@ import { captureRef } from 'react-native-view-shot';
 
 import { ContentActions } from '../components/ContentActions';
 import { AccessibleText as Text } from '../components/AccessibleText';
-import { ShareCardCollection } from '../components/ShareCard';
+import { ShareCard } from '../components/ShareCard';
 import { useDailyLiturgy } from '../context/DailyLiturgyContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -82,7 +82,7 @@ export function ReaderScreen({ route }) {
   const daySelectorContentWidth = useRef(0);
   const shareCardRef = useRef(null);
   const [captureVisible, setCaptureVisible] = useState(false);
-  const [captureCards, setCaptureCards] = useState([]);
+  const [captureCard, setCaptureCard] = useState(null);
   const [controlsHidden, setControlsHidden] = useState(true);
   const controlsTranslateX = useRef(new Animated.Value(HIDDEN_CONTROLS_OFFSET)).current;
   const animateControls = (hidden) => {
@@ -264,21 +264,24 @@ export function ReaderScreen({ route }) {
     ...(selectedPapalWords ? { 'papal-words': { category: 'PALAVRAS DO PAPA', readings: [{ text: selectedPapalWords.text }] } } : {}),
   };
   const shareSelectedSectionsAsImage = async (selectedOptionIds) => {
-    if (!(await Sharing.isAvailableAsync())) return;
-    const cards = selectedOptionIds
+    if (selectedOptionIds.length !== 1) return;
+    const card = selectedOptionIds
       .map((sectionId) => shareableSections[sectionId])
-      .filter(Boolean);
-    if (!cards.length) return;
-    setCaptureCards(cards);
+      .find(Boolean);
+    if (!card) return;
+    setCaptureCard(card);
     setCaptureVisible(true);
     try {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       if (!shareCardRef.current) return;
-      const uri = await captureRef(shareCardRef, { format: 'png', quality: 1, result: 'tmpfile', width: 1080 });
-      await Sharing.shareAsync(uri, { mimeType: 'image/png', UTI: 'public.png', dialogTitle: 'Compartilhar card' });
+      const imageUri = await captureRef(shareCardRef, { format: 'png', quality: 1, result: 'tmpfile', width: 1080 });
+      setCaptureVisible(false);
+      setCaptureCard(null);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      await Sharing.shareAsync(imageUri, { mimeType: 'image/png', UTI: 'public.png', dialogTitle: `Compartilhar ${card.category.toLowerCase()}` });
     } finally {
       setCaptureVisible(false);
-      setCaptureCards([]);
+      setCaptureCard(null);
     }
   };
 
@@ -387,9 +390,9 @@ export function ReaderScreen({ route }) {
         </Text>
       </ScrollView>
 
-      <Modal visible={captureVisible} transparent animationType="none" onRequestClose={() => setCaptureVisible(false)}>
+      <Modal visible={captureVisible} transparent animationType="none" statusBarTranslucent onRequestClose={() => setCaptureVisible(false)}>
         <View style={styles.captureRoot} pointerEvents="none">
-          <ShareCardCollection ref={shareCardRef} cards={captureCards} />
+          {captureCard ? <ShareCard ref={shareCardRef} {...captureCard} /> : null}
         </View>
       </Modal>
 
@@ -430,7 +433,7 @@ export function ReaderScreen({ route }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 }, content: { padding: 18, paddingBottom: 112 },
-  captureRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
+  captureRoot: { position: 'absolute', left: -10000, top: 0 },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   screenTitle: { marginBottom: 16, fontFamily: 'serif', fontWeight: '700' },
   daySelector: { gap: 8, paddingBottom: 20 },

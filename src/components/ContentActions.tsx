@@ -166,10 +166,16 @@ export function ContentActions({ reference, shareText, shareOptions, shareImage,
               <Text style={[styles.saveText, { color: colors.background }]}>Compartilhar seleção</Text>
             </Pressable>
             {shareImage ? (
-              <Pressable disabled={!selectedShareOptions.length} onPress={() => { setShareOpen(false); void shareImage(selectedShareOptions); }} style={[styles.imageButton, { borderColor: colors.primary, opacity: selectedShareOptions.length ? 1 : 0.4 }]}>
+              <Pressable
+                disabled={selectedShareOptions.length !== 1}
+                onPress={() => { setShareOpen(false); void shareImage(selectedShareOptions); }}
+                style={[styles.imageButton, { borderColor: colors.primary, opacity: selectedShareOptions.length === 1 ? 1 : 0.4 }]}
+              >
                 <Ionicons name="image-outline" size={18} color={colors.primary} />
                 <Text style={[styles.imageButtonText, { color: colors.primary }]}>Compartilhar como imagem</Text>
-                {imageShareLabel ? <Text style={[styles.imageButtonHint, { color: colors.mutedText }]}>{imageShareLabel}</Text> : null}
+                <Text style={[styles.imageButtonHint, { color: colors.mutedText }]}>
+                  {selectedShareOptions.length === 1 ? imageShareLabel : 'Selecione somente uma leitura'}
+                </Text>
               </Pressable>
             ) : null}
           </View>

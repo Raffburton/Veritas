@@ -15,26 +15,31 @@ type ShareCardProps = {
   readings: ShareCardReading[];
 };
 
-type ShareCardCollectionProps = {
-  cards: ShareCardProps[];
-};
-
 function normalizeText(text?: string) {
   return typeof text === 'string' ? text.replace(/(\d{1,3})(?=[A-Za-zÀ-ÖØ-öø-ÿ])/g, '$1 ') : '';
 }
 
+function getTextScale(readings: ShareCardReading[]) {
+  const characterCount = readings.reduce((total, reading) => total + [reading.reference, reading.title, reading.response, reading.text]
+    .filter(Boolean)
+    .join(' ').length, 0);
+  const estimatedHeight = 260 + characterCount * 1.18;
+  return Math.max(0.28, Math.min(1, 720 / estimatedHeight));
+}
+
 export const ShareCard = forwardRef<View, ShareCardProps>(function ShareCard({ category, readings }, ref) {
+  const textScale = getTextScale(readings);
   return (
     <View ref={ref} collapsable={false} style={styles.canvas}>
       <View style={styles.card}>
         <Text style={styles.brand}>veritas</Text>
-        <Text style={styles.category}>{category.toUpperCase()}</Text>
+        <Text style={[styles.category, { fontSize: Math.round(25 * textScale) }]}>{category.toUpperCase()}</Text>
         {readings.map((reading, index) => (
           <View key={`${reading.reference ?? reading.title ?? 'reading'}-${index}`} style={index ? styles.readingGap : undefined}>
-            {reading.reference ? <Text style={styles.reference}>{reading.reference}</Text> : null}
-            {reading.title ? <Text style={styles.title}>{reading.title}</Text> : null}
-            {reading.response ? <Text style={styles.response}>{reading.response}</Text> : null}
-            {reading.text ? <Text style={styles.body}>{normalizeText(reading.text)}</Text> : null}
+            {reading.reference ? <Text style={[styles.reference, { fontSize: Math.round(35 * textScale) }]}>{reading.reference}</Text> : null}
+            {reading.title ? <Text style={[styles.title, { fontSize: Math.round(28 * textScale), lineHeight: Math.round(40 * textScale) }]}>{reading.title}</Text> : null}
+            {reading.response ? <Text style={[styles.response, { fontSize: Math.round(27 * textScale), lineHeight: Math.round(42 * textScale) }]}>{reading.response}</Text> : null}
+            {reading.text ? <Text style={[styles.body, { fontSize: Math.round(28 * textScale), lineHeight: Math.round(45 * textScale) }]}>{normalizeText(reading.text)}</Text> : null}
           </View>
         ))}
         <Text style={styles.footer}>Compartilhado pelo Veritas</Text>
@@ -43,21 +48,7 @@ export const ShareCard = forwardRef<View, ShareCardProps>(function ShareCard({ c
   );
 });
 
-export const ShareCardCollection = forwardRef<View, ShareCardCollectionProps>(function ShareCardCollection({ cards }, ref) {
-  return (
-    <View ref={ref} collapsable={false} style={styles.collection}>
-      {cards.map((card, index) => (
-        <View key={`${card.category}-${index}`} style={index < cards.length - 1 ? styles.collectionGap : undefined}>
-          <ShareCard {...card} />
-        </View>
-      ))}
-    </View>
-  );
-});
-
 const styles = StyleSheet.create({
-  collection: { width: 720, backgroundColor: '#000000' },
-  collectionGap: { marginBottom: 24 },
   canvas: { width: 720, padding: 34, backgroundColor: '#000000' },
   card: { padding: 42, borderWidth: 2, borderColor: '#383838', borderRadius: 28, backgroundColor: '#171717' },
   brand: { marginBottom: 48, color: '#E8C75A', fontSize: 54, fontWeight: '800', textAlign: 'center' },
