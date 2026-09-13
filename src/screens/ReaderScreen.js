@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Linking, PanResponder, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Animated, Linking, Modal, PanResponder, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { captureRef } from 'react-native-view-shot';
 
 import { ContentActions } from '../components/ContentActions';
 import { AccessibleText as Text } from '../components/AccessibleText';
+import { ShareCard } from '../components/ShareCard';
 import { useDailyLiturgy } from '../context/DailyLiturgyContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -77,6 +80,10 @@ export function ReaderScreen({ route }) {
   const dayLayouts = useRef(new Map());
   const daySelectorViewportWidth = useRef(0);
   const daySelectorContentWidth = useRef(0);
+  const shareCardRef = useRef(null);
+  const readingSectionLayouts = useRef(new Map());
+  const [activeSectionId, setActiveSectionId] = useState('first-reading');
+  const [captureVisible, setCaptureVisible] = useState(false);
   const [controlsHidden, setControlsHidden] = useState(true);
   const controlsTranslateX = useRef(new Animated.Value(HIDDEN_CONTROLS_OFFSET)).current;
   const animateControls = (hidden) => {
@@ -250,10 +257,48 @@ export function ReaderScreen({ route }) {
         }]
       : []),
   ].filter((option) => option.text);
+  const shareableSections = {
+    'first-reading': { label: '1ª LEITURA', readings: selectedLiturgy.readings.firstReading },
+    psalm: { label: 'SALMO RESPONSORIAL', readings: selectedLiturgy.readings.psalm },
+    'second-reading': { label: '2ª LEITURA', readings: selectedLiturgy.readings.secondReading },
+    gospel: { label: 'EVANGELHO', readings: selectedLiturgy.readings.gospel },
+  };
+  const activeSection = shareableSections[activeSectionId] ?? shareableSections['first-reading'];
+  const updateActiveSection = (contentOffsetY = 0, viewportHeight = 0) => {
+    if (!viewportHeight) return;
+    const viewportEnd = contentOffsetY + viewportHeight;
+    let bestSection;
+    let bestVisibleHeight = 0;
+    readingSectionLayouts.current.forEach((layout, sectionId) => {
+      const visibleHeight = Math.max(0, Math.min(layout.y + layout.height, viewportEnd) - Math.max(layout.y, contentOffsetY));
+      if (visibleHeight > bestVisibleHeight) {
+        bestVisibleHeight = visibleHeight;
+        bestSection = sectionId;
+      }
+    });
+    if (bestSection) setActiveSectionId(bestSection);
+  };
+  const shareActiveSectionAsImage = async () => {
+    if (!(await Sharing.isAvailableAsync())) return;
+    setCaptureVisible(true);
+    try {
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      if (!shareCardRef.current) return;
+      const uri = await captureRef(shareCardRef, { format: 'png', quality: 1, result: 'tmpfile', width: 1080 });
+      await Sharing.shareAsync(uri, { mimeType: 'image/png', UTI: 'public.png', dialogTitle: 'Compartilhar card' });
+    } finally {
+      setCaptureVisible(false);
+    }
+  };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={{ backgroundColor: colors.background }}
+        contentContainerStyle={styles.content}
+        scrollEventThrottle={16}
+        onScroll={(event) => updateActiveSection(event.nativeEvent.contentOffset.y, event.nativeEvent.layoutMeasurement.height)}
+      >
         <Text style={[styles.screenTitle, { color: colors.text, fontSize: fontSize + 10 }]}>Liturgia da semana</Text>
         <View style={styles.syncStatus}>
           <View style={[styles.syncDot, { backgroundColor: syncing ? colors.mutedText : colors.primary }]} />
@@ -308,11 +353,19 @@ export function ReaderScreen({ route }) {
           </Text>
         </View>
 
-        <ContentActions reference={liturgyReference} shareText={shareText} shareOptions={shareOptions} />
-        <ReadingCard heading="Primeira leitura" readings={selectedLiturgy.readings.firstReading} colors={colors} fontSize={fontSize} boldText={boldText} />
-        <ReadingCard heading="Salmo responsorial" readings={selectedLiturgy.readings.psalm} colors={colors} fontSize={fontSize} boldText={boldText} />
-        <ReadingCard heading="Segunda leitura" readings={selectedLiturgy.readings.secondReading} colors={colors} fontSize={fontSize} boldText={boldText} />
-        <ReadingCard heading="Evangelho" readings={selectedLiturgy.readings.gospel} colors={colors} fontSize={fontSize} boldText={boldText} />
+        <ContentActions reference={liturgyReference} shareText={shareText} shareOptions={shareOptions} shareImage={shareActiveSectionAsImage} imageShareLabel={activeSection.label} />
+        {[
+          ['first-reading', 'Primeira leitura', selectedLiturgy.readings.firstReading],
+          ['psalm', 'Salmo responsorial', selectedLiturgy.readings.psalm],
+          ['second-reading', 'Segunda leitura', selectedLiturgy.readings.secondReading],
+          ['gospel', 'Evangelho', selectedLiturgy.readings.gospel],
+        ].map(([sectionId, heading, readings]) => (
+          <View key={sectionId} onLayout={(event) => {
+            readingSectionLayouts.current.set(sectionId, event.nativeEvent.layout);
+          }}>
+            <ReadingCard heading={heading} readings={readings} colors={colors} fontSize={fontSize} boldText={boldText} />
+          </View>
+        ))}
         <View style={[styles.card, styles.papalWordsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionHeading, { color: colors.primary, fontSize: Math.max(fontSize - 2, 12) }]}>Palavras do Papa</Text>
           {selectedPapalWords ? (
@@ -345,6 +398,12 @@ export function ReaderScreen({ route }) {
           Calendário {metadata.year} para {metadata.region}. Celebrações próprias podem variar conforme a diocese.
         </Text>
       </ScrollView>
+
+      <Modal visible={captureVisible} transparent animationType="none" onRequestClose={() => setCaptureVisible(false)}>
+        <View style={styles.captureRoot} pointerEvents="none">
+          <ShareCard ref={shareCardRef} category={activeSection.label} readings={activeSection.readings} />
+        </View>
+      </Modal>
 
       <Animated.View
         {...controlsPanResponder.panHandlers}
@@ -383,6 +442,7 @@ export function ReaderScreen({ route }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 }, content: { padding: 18, paddingBottom: 112 },
+  captureRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   screenTitle: { marginBottom: 16, fontFamily: 'serif', fontWeight: '700' },
   daySelector: { gap: 8, paddingBottom: 20 },

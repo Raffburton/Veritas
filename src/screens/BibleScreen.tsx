@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Sharing from 'expo-sharing';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { BackHandler, FlatList, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ContentActions } from '../components/ContentActions';
 import { AccessibleText as Text, AccessibleTextInput as TextInput } from '../components/AccessibleText';
+import { ShareCard } from '../components/ShareCard';
+import { captureRef } from 'react-native-view-shot';
 import { useTheme } from '../context/ThemeContext';
 import type { RootTabParamList } from '../navigation/AppNavigator';
 import { bibleBooks, getBibleBook, getBibleChapter } from '../services/bibleService';
@@ -108,6 +111,8 @@ export function BibleScreen({ route, navigation }: Props) {
   const verseListRef = useRef<FlatList<BibleVerse>>(null);
   const scrollRetryCount = useRef(0);
   const scrollRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shareCardRef = useRef<View>(null);
+  const [captureVisible, setCaptureVisible] = useState(false);
 
   useEffect(() => {
     if (route.params?.bookIndex === undefined) return;
@@ -226,6 +231,19 @@ export function BibleScreen({ route, navigation }: Props) {
         : {}),
     };
     const shareText = [location, book.livro, '', fullText, '', 'Compartilhado pelo Veritas'].join('\n');
+    const shareSelectedVersesAsImage = async () => {
+      if (!selectedVerses.length) return;
+      if (!(await Sharing.isAvailableAsync())) return;
+      setCaptureVisible(true);
+      try {
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        if (!shareCardRef.current) return;
+        const uri = await captureRef(shareCardRef, { format: 'png', quality: 1, result: 'tmpfile', width: 1080 });
+        await Sharing.shareAsync(uri, { mimeType: 'image/png', UTI: 'public.png', dialogTitle: 'Compartilhar versículo' });
+      } finally {
+        setCaptureVisible(false);
+      }
+    };
 
     return (
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -289,7 +307,12 @@ export function BibleScreen({ route, navigation }: Props) {
                   ? `${selectedVerses.length} ${selectedVerses.length === 1 ? 'versículo selecionado' : 'versículos selecionados'}.`
                   : 'Toque em um ou mais versículos para selecioná-los.'}
               </Text>
-              <ContentActions reference={reference} shareText={shareText} />
+              <ContentActions
+                reference={reference}
+                shareText={shareText}
+                shareImage={selectedVerses.length ? shareSelectedVersesAsImage : undefined}
+                imageShareLabel={selectedVerses.length ? 'VERSÍCULO SELECIONADO' : undefined}
+              />
             </>
           }
           renderItem={({ item: verse }) => {
@@ -309,6 +332,17 @@ export function BibleScreen({ route, navigation }: Props) {
             <Text style={[styles.translation, { color: colors.mutedText }]}>Tradução do Padre Manuel de Matos Soares, 1956.</Text>
           }
         />
+        {selectedVerses.length && captureVisible ? (
+          <Modal visible transparent animationType="none" onRequestClose={() => setCaptureVisible(false)}>
+            <View style={styles.captureRoot} pointerEvents="none">
+            <ShareCard
+              ref={shareCardRef}
+              category="VERSÍCULO SELECIONADO"
+              readings={[{ reference: location, text: chosenVerses.map((verse) => verse.texto).join('\n') }]}
+            />
+            </View>
+          </Modal>
+        ) : null}
       </View>
     );
   }
@@ -379,6 +413,7 @@ export function BibleScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 }, catalogHeader: { paddingHorizontal: 18, paddingTop: 14 },
+  captureRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
   title: { fontFamily: 'serif', fontSize: 28, fontWeight: '700' },
   catalogSubtitle: { marginTop: 3, marginBottom: 14, fontSize: 12 },
   search: { flexDirection: 'row', alignItems: 'center', gap: 9, height: 46, paddingHorizontal: 13, borderWidth: 1, borderRadius: 10 },

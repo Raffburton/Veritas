@@ -12,9 +12,11 @@ type ContentActionsProps = {
   reference: ContentReference;
   shareText: string;
   shareOptions?: Array<{ id: string; label: string; text: string }>;
+  shareImage?: () => Promise<void>;
+  imageShareLabel?: string;
 };
 
-export function ContentActions({ reference, shareText, shareOptions }: ContentActionsProps) {
+export function ContentActions({ reference, shareText, shareOptions, shareImage, imageShareLabel }: ContentActionsProps) {
   const insets = useSafeAreaInsets();
   const { colors, fontSize, boldText } = useTheme();
   const { addNote, folders, toggleSavedReading, isSaved } = useLibrary();
@@ -163,6 +165,13 @@ export function ContentActions({ reference, shareText, shareOptions }: ContentAc
               style={[styles.saveButton, { backgroundColor: colors.primary, opacity: selectedShareOptions.length ? 1 : 0.4 }]}>
               <Text style={[styles.saveText, { color: colors.background }]}>Compartilhar seleção</Text>
             </Pressable>
+            {shareImage ? (
+              <Pressable onPress={() => { setShareOpen(false); void shareImage(); }} style={[styles.imageButton, { borderColor: colors.primary }]}>
+                <Ionicons name="image-outline" size={18} color={colors.primary} />
+                <Text style={[styles.imageButtonText, { color: colors.primary }]}>Compartilhar como imagem</Text>
+                {imageShareLabel ? <Text style={[styles.imageButtonHint, { color: colors.mutedText }]}>{imageShareLabel}</Text> : null}
+              </Pressable>
+            ) : null}
           </View>
         </View>
       </Modal>
@@ -192,4 +201,6 @@ const styles = StyleSheet.create({
   input: { minHeight: 115, marginTop: 14, padding: 12, borderWidth: 1, borderRadius: 11, textAlignVertical: 'top' },
   saveButton: { alignItems: 'center', marginTop: 13, paddingVertical: 13, borderRadius: 10 },
   saveText: { fontSize: 14, fontWeight: '800' },
+  imageButton: { alignItems: 'center', gap: 5, marginTop: 11, paddingVertical: 12, borderWidth: 1, borderRadius: 10 },
+  imageButtonText: { fontSize: 14, fontWeight: '800' }, imageButtonHint: { fontSize: 11 },
 });
