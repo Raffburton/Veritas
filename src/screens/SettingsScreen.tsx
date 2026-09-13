@@ -348,6 +348,7 @@ export function SettingsScreen() {
           <Ionicons name="cloud-offline-outline" size={17} color={colors.primary} />
           <Text style={[styles.offlineText, { color: colors.mutedText }]}>Leituras e notas disponíveis offline</Text>
         </View>
+        <Text style={[styles.homage, { color: colors.mutedText }]}>Colocando a tecnologia a serviço do bem, sob a intercessão de São Carlo Acutis.</Text>
       </ScrollView>
 
       <Modal visible={panel !== null} transparent animationType="slide" onRequestClose={closePanel}>
@@ -848,6 +849,7 @@ const styles = StyleSheet.create({
   rowDescription: { fontSize: 12 }, pressed: { opacity: 0.55 },
   offlineNotice: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 2 },
   offlineText: { fontSize: 12, fontWeight: '600' },
+  homage: { marginTop: 24, paddingHorizontal: 18, fontFamily: 'serif', fontSize: 12, fontStyle: 'italic', lineHeight: 18, textAlign: 'center' },
   modalRoot: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0, 0, 0, 0.55)' },
   sheet: { width: '100%', maxHeight: '88%', paddingTop: 9, borderWidth: 1, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
