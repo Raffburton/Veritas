@@ -12,7 +12,7 @@ type ContentActionsProps = {
   reference: ContentReference;
   shareText: string;
   shareOptions?: Array<{ id: string; label: string; text: string }>;
-  shareImage?: () => Promise<void>;
+  shareImage?: (selectedOptionIds: string[]) => Promise<void>;
   imageShareLabel?: string;
 };
 
@@ -166,7 +166,7 @@ export function ContentActions({ reference, shareText, shareOptions, shareImage,
               <Text style={[styles.saveText, { color: colors.background }]}>Compartilhar seleção</Text>
             </Pressable>
             {shareImage ? (
-              <Pressable onPress={() => { setShareOpen(false); void shareImage(); }} style={[styles.imageButton, { borderColor: colors.primary }]}>
+              <Pressable disabled={!selectedShareOptions.length} onPress={() => { setShareOpen(false); void shareImage(selectedShareOptions); }} style={[styles.imageButton, { borderColor: colors.primary, opacity: selectedShareOptions.length ? 1 : 0.4 }]}>
                 <Ionicons name="image-outline" size={18} color={colors.primary} />
                 <Text style={[styles.imageButtonText, { color: colors.primary }]}>Compartilhar como imagem</Text>
                 {imageShareLabel ? <Text style={[styles.imageButtonHint, { color: colors.mutedText }]}>{imageShareLabel}</Text> : null}

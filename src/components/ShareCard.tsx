@@ -15,6 +15,10 @@ type ShareCardProps = {
   readings: ShareCardReading[];
 };
 
+type ShareCardCollectionProps = {
+  cards: ShareCardProps[];
+};
+
 function normalizeText(text?: string) {
   return typeof text === 'string' ? text.replace(/(\d{1,3})(?=[A-Za-zÀ-ÖØ-öø-ÿ])/g, '$1 ') : '';
 }
@@ -39,7 +43,21 @@ export const ShareCard = forwardRef<View, ShareCardProps>(function ShareCard({ c
   );
 });
 
+export const ShareCardCollection = forwardRef<View, ShareCardCollectionProps>(function ShareCardCollection({ cards }, ref) {
+  return (
+    <View ref={ref} collapsable={false} style={styles.collection}>
+      {cards.map((card, index) => (
+        <View key={`${card.category}-${index}`} style={index < cards.length - 1 ? styles.collectionGap : undefined}>
+          <ShareCard {...card} />
+        </View>
+      ))}
+    </View>
+  );
+});
+
 const styles = StyleSheet.create({
+  collection: { width: 720, backgroundColor: '#000000' },
+  collectionGap: { marginBottom: 24 },
   canvas: { width: 720, padding: 34, backgroundColor: '#000000' },
   card: { padding: 42, borderWidth: 2, borderColor: '#383838', borderRadius: 28, backgroundColor: '#171717' },
   brand: { marginBottom: 48, color: '#E8C75A', fontSize: 54, fontWeight: '800', textAlign: 'center' },

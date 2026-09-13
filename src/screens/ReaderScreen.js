@@ -5,7 +5,7 @@ import { captureRef } from 'react-native-view-shot';
 
 import { ContentActions } from '../components/ContentActions';
 import { AccessibleText as Text } from '../components/AccessibleText';
-import { ShareCard } from '../components/ShareCard';
+import { ShareCardCollection } from '../components/ShareCard';
 import { useDailyLiturgy } from '../context/DailyLiturgyContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -81,9 +81,8 @@ export function ReaderScreen({ route }) {
   const daySelectorViewportWidth = useRef(0);
   const daySelectorContentWidth = useRef(0);
   const shareCardRef = useRef(null);
-  const readingSectionLayouts = useRef(new Map());
-  const [activeSectionId, setActiveSectionId] = useState('first-reading');
   const [captureVisible, setCaptureVisible] = useState(false);
+  const [captureCards, setCaptureCards] = useState([]);
   const [controlsHidden, setControlsHidden] = useState(true);
   const controlsTranslateX = useRef(new Animated.Value(HIDDEN_CONTROLS_OFFSET)).current;
   const animateControls = (hidden) => {
@@ -258,28 +257,19 @@ export function ReaderScreen({ route }) {
       : []),
   ].filter((option) => option.text);
   const shareableSections = {
-    'first-reading': { label: '1ª LEITURA', readings: selectedLiturgy.readings.firstReading },
-    psalm: { label: 'SALMO RESPONSORIAL', readings: selectedLiturgy.readings.psalm },
-    'second-reading': { label: '2ª LEITURA', readings: selectedLiturgy.readings.secondReading },
-    gospel: { label: 'EVANGELHO', readings: selectedLiturgy.readings.gospel },
+    'first-reading': { category: '1ª LEITURA', readings: selectedLiturgy.readings.firstReading },
+    psalm: { category: 'SALMO RESPONSORIAL', readings: selectedLiturgy.readings.psalm },
+    'second-reading': { category: '2ª LEITURA', readings: selectedLiturgy.readings.secondReading },
+    gospel: { category: 'EVANGELHO', readings: selectedLiturgy.readings.gospel },
+    ...(selectedPapalWords ? { 'papal-words': { category: 'PALAVRAS DO PAPA', readings: [{ text: selectedPapalWords.text }] } } : {}),
   };
-  const activeSection = shareableSections[activeSectionId] ?? shareableSections['first-reading'];
-  const updateActiveSection = (contentOffsetY = 0, viewportHeight = 0) => {
-    if (!viewportHeight) return;
-    const viewportEnd = contentOffsetY + viewportHeight;
-    let bestSection;
-    let bestVisibleHeight = 0;
-    readingSectionLayouts.current.forEach((layout, sectionId) => {
-      const visibleHeight = Math.max(0, Math.min(layout.y + layout.height, viewportEnd) - Math.max(layout.y, contentOffsetY));
-      if (visibleHeight > bestVisibleHeight) {
-        bestVisibleHeight = visibleHeight;
-        bestSection = sectionId;
-      }
-    });
-    if (bestSection) setActiveSectionId(bestSection);
-  };
-  const shareActiveSectionAsImage = async () => {
+  const shareSelectedSectionsAsImage = async (selectedOptionIds) => {
     if (!(await Sharing.isAvailableAsync())) return;
+    const cards = selectedOptionIds
+      .map((sectionId) => shareableSections[sectionId])
+      .filter(Boolean);
+    if (!cards.length) return;
+    setCaptureCards(cards);
     setCaptureVisible(true);
     try {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -288,6 +278,7 @@ export function ReaderScreen({ route }) {
       await Sharing.shareAsync(uri, { mimeType: 'image/png', UTI: 'public.png', dialogTitle: 'Compartilhar card' });
     } finally {
       setCaptureVisible(false);
+      setCaptureCards([]);
     }
   };
 
@@ -297,7 +288,6 @@ export function ReaderScreen({ route }) {
         style={{ backgroundColor: colors.background }}
         contentContainerStyle={styles.content}
         scrollEventThrottle={16}
-        onScroll={(event) => updateActiveSection(event.nativeEvent.contentOffset.y, event.nativeEvent.layoutMeasurement.height)}
       >
         <Text style={[styles.screenTitle, { color: colors.text, fontSize: fontSize + 10 }]}>Liturgia da semana</Text>
         <View style={styles.syncStatus}>
@@ -353,16 +343,14 @@ export function ReaderScreen({ route }) {
           </Text>
         </View>
 
-        <ContentActions reference={liturgyReference} shareText={shareText} shareOptions={shareOptions} shareImage={shareActiveSectionAsImage} imageShareLabel={activeSection.label} />
+        <ContentActions reference={liturgyReference} shareText={shareText} shareOptions={shareOptions} shareImage={shareSelectedSectionsAsImage} imageShareLabel="LEITURAS SELECIONADAS" />
         {[
           ['first-reading', 'Primeira leitura', selectedLiturgy.readings.firstReading],
           ['psalm', 'Salmo responsorial', selectedLiturgy.readings.psalm],
           ['second-reading', 'Segunda leitura', selectedLiturgy.readings.secondReading],
           ['gospel', 'Evangelho', selectedLiturgy.readings.gospel],
         ].map(([sectionId, heading, readings]) => (
-          <View key={sectionId} onLayout={(event) => {
-            readingSectionLayouts.current.set(sectionId, event.nativeEvent.layout);
-          }}>
+          <View key={sectionId}>
             <ReadingCard heading={heading} readings={readings} colors={colors} fontSize={fontSize} boldText={boldText} />
           </View>
         ))}
@@ -401,7 +389,7 @@ export function ReaderScreen({ route }) {
 
       <Modal visible={captureVisible} transparent animationType="none" onRequestClose={() => setCaptureVisible(false)}>
         <View style={styles.captureRoot} pointerEvents="none">
-          <ShareCard ref={shareCardRef} category={activeSection.label} readings={activeSection.readings} />
+          <ShareCardCollection ref={shareCardRef} cards={captureCards} />
         </View>
       </Modal>
 
