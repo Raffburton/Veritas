@@ -51,12 +51,12 @@ export const ShareCard = forwardRef<View, ShareCardProps>(function ShareCard({ c
 const styles = StyleSheet.create({
   canvas: { width: 720, padding: 34, backgroundColor: '#000000' },
   card: { padding: 42, borderWidth: 2, borderColor: '#383838', borderRadius: 28, backgroundColor: '#171717' },
-  brand: { marginBottom: 48, color: '#E8C75A', fontSize: 54, fontWeight: '800', textAlign: 'center' },
-  category: { marginBottom: 25, color: '#E8C75A', fontSize: 25, fontWeight: '800', letterSpacing: 0.4 },
-  reference: { marginBottom: 14, color: '#F5F5F5', fontSize: 35, fontWeight: '800' },
-  title: { marginBottom: 13, color: '#E5E5E5', fontSize: 28, fontStyle: 'italic', lineHeight: 40 },
-  response: { marginTop: 6, color: '#F5F5F5', fontSize: 27, fontStyle: 'italic', lineHeight: 42 },
+  brand: { marginBottom: 48, color: '#E8C75A', fontFamily: 'serif', fontSize: 54, fontWeight: '800', textAlign: 'center' },
+  category: { marginBottom: 25, color: '#E8C75A', fontFamily: 'serif', fontSize: 25, fontWeight: '800', letterSpacing: 0.4 },
+  reference: { marginBottom: 14, color: '#F5F5F5', fontFamily: 'serif', fontSize: 35, fontWeight: '800' },
+  title: { marginBottom: 13, color: '#E5E5E5', fontFamily: 'serif', fontSize: 28, fontStyle: 'italic', lineHeight: 40 },
+  response: { marginTop: 6, color: '#F5F5F5', fontFamily: 'serif', fontSize: 27, fontStyle: 'italic', lineHeight: 42 },
   body: { marginTop: 22, color: '#F5F5F5', fontFamily: 'serif', fontSize: 28, lineHeight: 45 },
   readingGap: { marginTop: 34, paddingTop: 34, borderTopWidth: 1, borderTopColor: '#383838' },
-  footer: { marginTop: 42, color: '#999999', fontSize: 18, textAlign: 'center' },
+  footer: { marginTop: 42, color: '#999999', fontFamily: 'serif', fontSize: 18, textAlign: 'center' },
 });

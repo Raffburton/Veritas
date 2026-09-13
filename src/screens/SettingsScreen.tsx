@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
   updateNotice: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1, borderRadius: 16, marginTop: 16, marginBottom: 8 },
   updateDescription: { fontSize: 13, lineHeight: 19, marginTop: 4 },
   paragraph: { marginTop: 15, fontSize: 14, lineHeight: 21, textAlign: 'center' },
-  aboutHistoryTitle: { marginTop: 24, fontSize: 18, fontWeight: '600' },
+  aboutHistoryTitle: { marginTop: 24, fontFamily: 'serif', fontSize: 18, fontWeight: '700' },
   aboutHistoryParagraph: { marginTop: 12, fontSize: 14, lineHeight: 22 },
   version: { marginTop: 17, fontSize: 11, fontWeight: '700' },
   technologyList: { overflow: 'hidden' },
