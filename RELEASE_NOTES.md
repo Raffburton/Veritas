@@ -1,14 +1,18 @@
-# Veritas - Notas de Atualização v1.2.7
+### 🚀 **Veritas v1.2.9 - Notas da Atualização**
 
-📖 Leitura & Liturgia
-Aprimoramento Visual da Liturgia: Otimização na leitura de telas e componentes dos versículos, incluindo o destaque visual em negrito na aba Liturgia para uma visualização mais clara.
+#### 🖼️ **Novo Recurso: Compartilhamento Visual**
 
-🎨 Visual & Desempenho (UI/UX)
-Suporte a Telas OLED: Implementação de fundo preto absoluto para economia de energia e melhor contraste.
+- **Cards para Compartilhamento:** Adicionado o componente `ShareCard` no `ReaderScreen`, permitindo gerar e compartilhar trechos e versículos formatados diretamente como imagem.
 
-Melhorias de Escala e Resolução: Ajustes na interface e na resolução geral para garantir uma boa exibição em diferentes dispositivos.
+#### 🌙 **Visual & Experiência (OLED)**
 
-Navegação Intuitiva (Beta): Adição da navegação por deslize lateral (swipe) para facilitar a transição entre telas.
+- **Modo Escuro Aperfeiçoado:** Otimização para telas OLED com preto absoluto.
+- **Cores de Seleção nos Temas:** Adicionado suporte a cores de seleção personalizadas integradas à `BibleScreen` para uma leitura mais agradável.
 
-♿ Acessibilidade
-Modo Negrito: Nova opção de texto em negrito focada em acessibilidade e conforto visual.
+#### 🔔 **Notificações & Sistema**
+
+- **Compatibilidade no Android:** Correção e adição de suporte ao ícone grande de notificação (`large notification icon`), garantindo exibição correta em múltiplos dispositivos.
+
+#### 🕊️ **Homenagem & Rodapé**
+
+- **Padroeiro da Internet:** Adicionado texto no rodapé em homenagem a **São Carlo Acutis**, padroeiro da internet e da tecnologia.
