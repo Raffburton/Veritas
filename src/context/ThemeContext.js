@@ -12,6 +12,7 @@ export const THEME_COLORS = {
   'light-yellow': {
     background: '#FFF8D6',
     surface: '#FFFDF2',
+    selection: '#FFF0A8',
     text: '#332B00',
     mutedText: '#6B5D1E',
     primary: '#8A6800',
@@ -20,6 +21,7 @@ export const THEME_COLORS = {
   'light-white': {
     background: '#F4F6F8',
     surface: '#FFFFFF',
+    selection: '#E7F0FA',
     text: '#18212B',
     mutedText: '#596573',
     primary: '#315E8A',
@@ -30,6 +32,7 @@ export const THEME_COLORS = {
     // Preto puro mantém os pixels desligados em painéis OLED. As bordas ainda
     // separam cartões, diálogos e a barra de navegação sem criar superfícies cinza.
     surface: '#000000',
+    selection: '#2A2410',
     text: '#F5F5F5',
     mutedText: '#B8B8B8',
     primary: '#E8C75A',
@@ -38,6 +41,7 @@ export const THEME_COLORS = {
   'dark-navy': {
     background: '#071525',
     surface: '#10253B',
+    selection: '#193B5C',
     text: '#F1F7FF',
     mutedText: '#AFC3D8',
     primary: '#7DB7E8',

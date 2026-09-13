@@ -9,6 +9,7 @@ export type AppTheme =
 export type ThemeColors = {
   background: string;
   surface: string;
+  selection: string;
   text: string;
   mutedText: string;
   primary: string;

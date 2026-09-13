@@ -298,7 +298,7 @@ export function BibleScreen({ route, navigation }: Props) {
               <Pressable accessibilityRole="button" accessibilityState={{ selected }} onPress={() => toggleVerse(verse.numero)}
                 style={[
                   styles.verse,
-                  selected && { backgroundColor: colors.surface, borderLeftColor: colors.primary },
+                  selected && { backgroundColor: colors.selection, borderLeftColor: colors.primary },
                 ]}>
                 <Text style={[styles.verseNumber, { color: colors.primary, fontSize: Math.max(fontSize - 4, 11) }]}>{verse.numero}</Text>
                 <Text style={[styles.verseText, { color: colors.text, fontSize, lineHeight: Math.round(fontSize * 1.65), fontWeight: boldText ? '700' : '400' }]}>{verse.texto}</Text>
