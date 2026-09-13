@@ -29,7 +29,15 @@
     },
     "plugins": [
       "expo-font",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-notification-icon.png",
+          "color": "#FFFFFF",
+          "defaultChannel": "veritas-reminders"
+        }
+      ],
+      "./plugins/withNotificationLargeIcon",
       "expo-status-bar"
     ],
     "extra": {
