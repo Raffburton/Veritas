@@ -5,15 +5,19 @@ export type ReleaseNoteSection = {
 
 export const releaseNoteSections: ReleaseNoteSection[] = [
   {
-    title: 'Leitura & Liturgia',
-    description: 'Aprimoramento visual da liturgia: otimização na leitura de telas e componentes dos versículos, incluindo o destaque visual em negrito na aba Liturgia para uma visualização mais clara.',
+    title: 'Novo recurso: compartilhamento visual',
+    description: 'Adicionado o componente ShareCard no ReaderScreen, permitindo gerar e compartilhar trechos e versículos formatados diretamente como imagem.',
   },
   {
-    title: 'Visual & Desempenho (UI/UX)',
-    description: 'Suporte a telas OLED, melhorias de escala e resolução em diferentes dispositivos e navegação por deslize lateral entre telas.',
+    title: 'Visual & Experiência (OLED)',
+    description: 'Modo escuro aperfeiçoado para telas OLED com preto absoluto e suporte a cores de seleção personalizadas integradas à BibleScreen.',
   },
   {
-    title: 'Acessibilidade',
-    description: 'Modo negrito para melhorar a acessibilidade e o conforto visual durante a leitura.',
+    title: 'Notificações & Sistema',
+    description: 'Correção e adição de suporte ao ícone grande de notificação no Android, garantindo exibição correta em múltiplos dispositivos.',
+  },
+  {
+    title: 'Homenagem & Rodapé',
+    description: 'Adicionado texto em homenagem a São Carlo Acutis, padroeiro da internet e da tecnologia.',
   },
 ];
