@@ -310,8 +310,11 @@ export function BibleScreen({ route, navigation }: Props) {
               <ContentActions
                 reference={reference}
                 shareText={shareText}
+                shareOptions={selectedVerses.length ? [{ id: 'selected-verses', label: 'Versículos selecionados', text: fullText }] : undefined}
                 shareImage={selectedVerses.length ? shareSelectedVersesAsImage : undefined}
                 imageShareLabel={selectedVerses.length ? 'VERSÍCULO SELECIONADO' : undefined}
+                imageShareDisabled={selectedVerses.length > 10}
+                imageShareDisabledMessage="O compartilhamento por imagem é limitado a 10 versículos."
               />
             </>
           }

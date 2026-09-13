@@ -14,9 +14,11 @@ type ContentActionsProps = {
   shareOptions?: Array<{ id: string; label: string; text: string }>;
   shareImage?: (selectedOptionIds: string[]) => Promise<void>;
   imageShareLabel?: string;
+  imageShareDisabled?: boolean;
+  imageShareDisabledMessage?: string;
 };
 
-export function ContentActions({ reference, shareText, shareOptions, shareImage, imageShareLabel }: ContentActionsProps) {
+export function ContentActions({ reference, shareText, shareOptions, shareImage, imageShareLabel, imageShareDisabled = false, imageShareDisabledMessage }: ContentActionsProps) {
   const insets = useSafeAreaInsets();
   const { colors, fontSize, boldText } = useTheme();
   const { addNote, folders, toggleSavedReading, isSaved } = useLibrary();
@@ -24,6 +26,7 @@ export function ContentActions({ reference, shareText, shareOptions, shareImage,
   const [noteBody, setNoteBody] = useState('');
   const [noteFolderId, setNoteFolderId] = useState<string | undefined>();
   const [shareOpen, setShareOpen] = useState(false);
+  const [imageLimitOpen, setImageLimitOpen] = useState(false);
   const [selectedShareOptions, setSelectedShareOptions] = useState<string[]>([]);
   const saved = isSaved(reference.id);
 
@@ -80,7 +83,7 @@ export function ContentActions({ reference, shareText, shareOptions, shareImage,
       </View>
 
       <Modal visible={noteOpen} transparent animationType="fade" onRequestClose={() => setNoteOpen(false)}>
-        <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 22), paddingBottom: Math.max(insets.bottom, 22) }]}>
+        <View style={styles.modalRoot}>
           <Pressable style={styles.backdrop} onPress={() => setNoteOpen(false)} />
           <View style={[styles.dialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.dialogHeader}>
@@ -167,17 +170,45 @@ export function ContentActions({ reference, shareText, shareOptions, shareImage,
             </Pressable>
             {shareImage ? (
               <Pressable
-                disabled={selectedShareOptions.length !== 1}
-                onPress={() => { setShareOpen(false); void shareImage(selectedShareOptions); }}
-                style={[styles.imageButton, { borderColor: colors.primary, opacity: selectedShareOptions.length === 1 ? 1 : 0.4 }]}
+                accessibilityState={{ disabled: imageShareDisabled || selectedShareOptions.length !== 1 }}
+                onPress={() => {
+                  if (imageShareDisabled) {
+                    setImageLimitOpen(true);
+                    return;
+                  }
+                  if (selectedShareOptions.length !== 1) return;
+                  setShareOpen(false);
+                  void shareImage(selectedShareOptions);
+                }}
+                style={[styles.imageButton, { borderColor: colors.primary, opacity: imageShareDisabled || selectedShareOptions.length !== 1 ? 0.4 : 1 }]}
               >
                 <Ionicons name="image-outline" size={18} color={colors.primary} />
                 <Text style={[styles.imageButtonText, { color: colors.primary }]}>Compartilhar como imagem</Text>
                 <Text style={[styles.imageButtonHint, { color: colors.mutedText }]}>
-                  {selectedShareOptions.length === 1 ? imageShareLabel : 'Selecione somente uma leitura'}
+                  {imageShareDisabled ? 'Limitado a 10 versículos' : selectedShareOptions.length === 1 ? imageShareLabel : 'Selecione somente uma leitura'}
                 </Text>
               </Pressable>
             ) : null}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={imageLimitOpen} transparent animationType="fade" onRequestClose={() => setImageLimitOpen(false)}>
+            <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 22), paddingBottom: Math.max(insets.bottom, 22) }]}> 
+          <Pressable style={styles.backdrop} onPress={() => setImageLimitOpen(false)} />
+          <View style={[styles.dialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={styles.dialogHeader}>
+              <Text style={[styles.dialogTitle, { color: colors.text }]}>Limite do Card</Text>
+              <Pressable accessibilityLabel="Fechar" onPress={() => setImageLimitOpen(false)}>
+                <Ionicons name="close" size={24} color={colors.mutedText} />
+              </Pressable>
+            </View>
+            <Text style={[styles.limitMessage, { color: colors.text }]}>
+              {imageShareDisabledMessage ?? 'O compartilhamento por imagem é limitado a 10 versículos.'}
+            </Text>
+            <Pressable onPress={() => setImageLimitOpen(false)} style={[styles.saveButton, { backgroundColor: colors.primary }]}>
+              <Text style={[styles.saveText, { color: colors.background }]}>Entendi</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -205,6 +236,7 @@ const styles = StyleSheet.create({
   folderChoice: { maxWidth: 145, minHeight: 35, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, borderWidth: 1, borderRadius: 18 },
   folderChoiceText: { maxWidth: 105, fontSize: 11, fontWeight: '700' },
   input: { minHeight: 115, marginTop: 14, padding: 12, borderWidth: 1, borderRadius: 11, textAlignVertical: 'top' },
+  limitMessage: { marginTop: 14, fontSize: 14, lineHeight: 21 },
   saveButton: { alignItems: 'center', marginTop: 13, paddingVertical: 13, borderRadius: 10 },
   saveText: { fontSize: 14, fontWeight: '800' },
   imageButton: { alignItems: 'center', gap: 5, marginTop: 11, paddingVertical: 12, borderWidth: 1, borderRadius: 10 },
