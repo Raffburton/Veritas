@@ -113,6 +113,7 @@ export function BibleScreen({ route, navigation }: Props) {
   const scrollRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shareCardRef = useRef<View>(null);
   const [captureVisible, setCaptureVisible] = useState(false);
+  const [selectionLimitOpen, setSelectionLimitOpen] = useState(false);
 
   useEffect(() => {
     if (route.params?.bookIndex === undefined) return;
@@ -200,9 +201,11 @@ export function BibleScreen({ route, navigation }: Props) {
   }
 
   function toggleVerse(number: number) {
-    setSelectedVerses((current) =>
-      current.includes(number) ? current.filter((verse) => verse !== number) : [...current, number].sort((a, b) => a - b),
-    );
+    setSelectedVerses((current) => {
+      if (current.includes(number)) return current.filter((verse) => verse !== number);
+      if (current.length === 10) setSelectionLimitOpen(true);
+      return [...current, number].sort((a, b) => a - b);
+    });
   }
 
   if (book && summary && chapter) {
@@ -346,6 +349,31 @@ export function BibleScreen({ route, navigation }: Props) {
             </View>
           </Modal>
         ) : null}
+        <Modal visible={selectionLimitOpen} transparent animationType="fade" onRequestClose={() => setSelectionLimitOpen(false)}>
+          <View style={styles.limitModalRoot}>
+            <Pressable style={styles.limitBackdrop} onPress={() => setSelectionLimitOpen(false)} />
+            <View
+              style={[
+                styles.limitDialog,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.limitDialogHeader}>
+                <Text style={[styles.limitTitle, { color: colors.text }]}>Limite do Card</Text>
+                <Pressable accessibilityLabel="Fechar" onPress={() => setSelectionLimitOpen(false)}>
+                  <Ionicons name="close" size={24} color={colors.mutedText} />
+                </Pressable>
+              </View>
+              <Text style={[styles.limitMessage, { color: colors.text }]}>O compartilhamento por imagem é limitado a 10 versículos.</Text>
+              <Pressable
+                onPress={() => setSelectionLimitOpen(false)}
+                style={[styles.limitButton, { backgroundColor: colors.primary }]}
+              >
+                <Text style={[styles.limitButtonText, { color: colors.background }]}>Entendi</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -439,4 +467,12 @@ const styles = StyleSheet.create({
   verse: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 8, paddingVertical: 9, borderLeftWidth: 3, borderLeftColor: 'transparent', borderRadius: 5 },
   verseNumber: { width: 29, paddingTop: 2, fontWeight: '800' }, verseText: { flex: 1, fontFamily: 'serif' },
   translation: { marginTop: 22, fontSize: 10, textAlign: 'center' },
+  limitModalRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 22 },
+  limitBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.6)' },
+  limitDialog: { width: '100%', padding: 18, borderWidth: 1, borderRadius: 17 },
+  limitDialogHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  limitTitle: { fontFamily: 'serif', fontSize: 22, fontWeight: '700' },
+  limitMessage: { marginTop: 14, fontSize: 14, lineHeight: 21 },
+  limitButton: { alignItems: 'center', marginTop: 13, paddingVertical: 13, borderRadius: 10 },
+  limitButtonText: { fontSize: 14, fontWeight: '800' },
 });

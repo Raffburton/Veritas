@@ -194,7 +194,7 @@ export function ContentActions({ reference, shareText, shareOptions, shareImage,
       </Modal>
 
       <Modal visible={imageLimitOpen} transparent animationType="fade" onRequestClose={() => setImageLimitOpen(false)}>
-            <View style={[styles.modalRoot, { paddingTop: Math.max(insets.top, 22), paddingBottom: Math.max(insets.bottom, 22) }]}> 
+          <View style={styles.modalRoot}>
           <Pressable style={styles.backdrop} onPress={() => setImageLimitOpen(false)} />
           <View style={[styles.dialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.dialogHeader}>
